@@ -65,11 +65,16 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     try {
       const response = await fetch("/api/portfolio", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-admin-passcode": sessionStorage.getItem("admin_passcode") || "",
+        },
         body: JSON.stringify(newData),
       });
       if (response.ok) {
         setIsMongoConnected(true);
+      } else if (response.status === 401) {
+        console.error("Save rejected: admin session expired or invalid, please log in to /admin again.");
       }
     } catch (err) {
       console.error("Failed to sync update to MongoDB Atlas:", err);
@@ -82,16 +87,8 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       localStorage.removeItem(STORAGE_KEY);
     } catch (e) {}
 
-    try {
-      const response = await fetch("/api/portfolio/reset", {
-        method: "POST",
-      });
-      if (response.ok) {
-        setIsMongoConnected(true);
-      }
-    } catch (err) {
-      console.error("Failed to reset MongoDB Atlas data:", err);
-    }
+    // Persist reset via PUT /api/portfolio
+    await updateData(defaultData);
   };
 
   const exportJSON = () => {

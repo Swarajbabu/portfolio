@@ -18,13 +18,24 @@ const Admin = () => {
   const [formData, setFormData] = useState(data);
   const [toastMessage, setToastMessage] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (passcode === "admin123" || passcode === "swaraj") {
-      setIsAuthenticated(true);
-      setPassError("");
-    } else {
-      setPassError("Invalid passcode. Try 'admin123'");
+    try {
+      const res = await fetch("/api/admin/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ passcode }),
+      });
+      if (res.ok) {
+        sessionStorage.setItem("admin_passcode", passcode);
+        setIsAuthenticated(true);
+        setPassError("");
+      } else {
+        const json = await res.json().catch(() => ({}));
+        setPassError(json.error === "Invalid passcode" ? "Invalid passcode." : (json.error || "Login failed."));
+      }
+    } catch (err) {
+      setPassError("Could not reach the server to verify the passcode.");
     }
   };
 
@@ -53,7 +64,10 @@ const Admin = () => {
         const base64 = reader.result as string;
         const res = await fetch("/api/upload", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-passcode": sessionStorage.getItem("admin_passcode") || "",
+          },
           body: JSON.stringify({ image: base64 }),
         });
         const json = await res.json();
@@ -84,7 +98,7 @@ const Admin = () => {
           <form onSubmit={handleLogin} className="space-y-4">
             <input
               type="password"
-              placeholder="Enter Passcode (default: admin123)"
+              placeholder="Enter passcode"
               value={passcode}
               onChange={(e) => setPasscode(e.target.value)}
               className="w-full border-2 border-black bg-[#FAF8F5] px-4 py-3 font-bold text-center text-lg text-black placeholder:text-black/40 focus:bg-yellow-100 focus:outline-none shadow-[3px_3px_0px_0px_#000]"
