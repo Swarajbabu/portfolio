@@ -454,6 +454,7 @@ const Admin = () => {
                         ...formData.projects.cards,
                         {
                           name: "New Project",
+                          category: "Full Stack",
                           year: "2026",
                           description: "Project description goes here.",
                           tags: ["React", "Node.js"],
@@ -473,10 +474,11 @@ const Admin = () => {
               <div className="space-y-6">
                 {formData.projects.cards.map((project, pIdx) => (
                   <div key={pIdx} className="border-4 border-black bg-white p-6 shadow-[6px_6px_0px_0px_#000] space-y-4">
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                       <input
                         type="text"
                         value={project.name}
+                        placeholder="Project Title"
                         onChange={(e) => {
                           const updated = [...formData.projects.cards];
                           updated[pIdx].name = e.target.value;
@@ -486,13 +488,25 @@ const Admin = () => {
                       />
                       <input
                         type="text"
+                        value={project.category || ""}
+                        placeholder="Category (e.g. AI & Full Stack)"
+                        onChange={(e) => {
+                          const updated = [...formData.projects.cards];
+                          updated[pIdx].category = e.target.value;
+                          setFormData({ ...formData, projects: { ...formData.projects, cards: updated } });
+                        }}
+                        className="w-full sm:w-56 border-2 border-black bg-[#F7F4EA] px-3 py-2 font-bold text-sm text-black"
+                      />
+                      <input
+                        type="text"
                         value={project.year}
+                        placeholder="Year"
                         onChange={(e) => {
                           const updated = [...formData.projects.cards];
                           updated[pIdx].year = e.target.value;
                           setFormData({ ...formData, projects: { ...formData.projects, cards: updated } });
                         }}
-                        className="w-28 border-2 border-black bg-neo-secondary px-3 py-2 font-black text-sm text-center text-black"
+                        className="w-full sm:w-28 border-2 border-black bg-neo-secondary px-3 py-2 font-black text-sm text-center text-black"
                       />
                       <button
                         type="button"
@@ -500,7 +514,7 @@ const Admin = () => {
                           const updated = formData.projects.cards.filter((_, i) => i !== pIdx);
                           setFormData({ ...formData, projects: { ...formData.projects, cards: updated } });
                         }}
-                        className="border-2 border-black bg-red-400 p-2 neo-btn-press shadow-[2px_2px_0px_0px_#000]"
+                        className="border-2 border-black bg-red-400 p-2 neo-btn-press shadow-[2px_2px_0px_0px_#000] self-end sm:self-auto"
                       >
                         <Trash2 className="h-4 w-4 text-black" />
                       </button>
