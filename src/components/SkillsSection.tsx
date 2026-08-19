@@ -15,12 +15,13 @@ import {
   Terminal,
   Cpu,
   Layers,
-  Zap
+  Zap,
+  LucideIcon
 } from "lucide-react";
 
 // Curated Vibrant Neo-Color Themes for each Domain
 const categoryMeta: Record<string, {
-  icon: any;
+  icon: LucideIcon;
   cardBg: string;
   headerBg: string;
   headerText: string;

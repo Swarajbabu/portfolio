@@ -15,6 +15,20 @@ import {
   Minimize2
 } from "lucide-react";
 
+interface ProjectCardItem {
+  name: string;
+  category?: string;
+  year?: string;
+  description: string;
+  tags: string[];
+  links?: { label: string; url: string }[];
+  image: string;
+  impactPoints?: string[];
+  githubUrl?: string;
+  deployUrl?: string;
+  liveUrl?: string;
+}
+
 const ProjectsSection = () => {
   const { data } = usePortfolio();
   const { projects } = data;
@@ -26,7 +40,7 @@ const ProjectsSection = () => {
 
   const filterOptions = ["All", "AI / ML & GPT", "Full Stack & Web", "Cloud & DevOps", "FinTech & Trading"];
 
-  const matchesFilter = (project: any, filter: string) => {
+  const matchesFilter = (project: ProjectCardItem, filter: string) => {
     if (filter === "All") return true;
     const content = `${project.name || ""} ${project.category || ""} ${project.description || ""} ${(project.tags || []).join(" ")}`.toLowerCase();
 
@@ -46,7 +60,7 @@ const ProjectsSection = () => {
   };
 
   const filteredProjects = useMemo(() => {
-    return projects.cards.filter((p: any) => matchesFilter(p, activeFilter));
+    return projects.cards.filter((p: ProjectCardItem) => matchesFilter(p, activeFilter));
   }, [projects.cards, activeFilter]);
 
   const totalPages = Math.ceil(filteredProjects.length / ITEMS_PER_PAGE);
@@ -224,7 +238,7 @@ const ProjectsSection = () => {
 
           {/* Cards Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10">
-            {paginatedProjects.map((project: any, i: number) => {
+            {paginatedProjects.map((project: ProjectCardItem, i: number) => {
               const actualIndex = viewAll ? i : currentPage * ITEMS_PER_PAGE + i;
               const projectNumber = `#0${actualIndex + 1}`;
               const categoryBadge = project.category || (actualIndex === 0 ? "FinTech & Real-Time" : actualIndex === 1 ? "Cloud & DevOps" : "AI & Full Stack");
@@ -315,8 +329,8 @@ const ProjectsSection = () => {
                     <div className="pt-6 border-t-2 border-black/10 flex flex-wrap items-center gap-3">
                       {/* 1. GitHub Code Button (if available) */}
                       {(() => {
-                        const githubLink = project.links?.find((l: any) => l.label?.toLowerCase().includes("github"))?.url || project.githubUrl || (project.links?.[0]?.url?.includes("github.com") ? project.links[0].url : "");
-                        const deployLink = project.links?.find((l: any) => l.label?.toLowerCase().includes("live") || l.label?.toLowerCase().includes("demo") || l.label?.toLowerCase().includes("deploy"))?.url || project.deployUrl || project.liveUrl || (project.links?.[1]?.url || "");
+                        const githubLink = project.links?.find((l: { label: string; url: string }) => l.label?.toLowerCase().includes("github"))?.url || project.githubUrl || (project.links?.[0]?.url?.includes("github.com") ? project.links[0].url : "");
+                        const deployLink = project.links?.find((l: { label: string; url: string }) => l.label?.toLowerCase().includes("live") || l.label?.toLowerCase().includes("demo") || l.label?.toLowerCase().includes("deploy"))?.url || project.deployUrl || project.liveUrl || (project.links?.[1]?.url || "");
 
                         const hasValidDeploy = deployLink && deployLink.trim() !== "" && deployLink !== "#" && !deployLink.endsWith("github.com/Swarajbabu");
 

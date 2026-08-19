@@ -42,7 +42,9 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             setIsMongoConnected(true);
             try {
               localStorage.setItem(STORAGE_KEY, JSON.stringify(mongoData));
-            } catch (e) {}
+            } catch {
+              // Ignore local storage quota/private browsing write errors
+            }
           }
         }
       } catch (err) {
@@ -60,7 +62,9 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setData(newData);
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newData));
-    } catch (e) {}
+    } catch {
+      // Ignore local storage quota/private browsing write errors
+    }
 
     try {
       const response = await fetch("/api/portfolio", {
@@ -85,7 +89,9 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setData(defaultData);
     try {
       localStorage.removeItem(STORAGE_KEY);
-    } catch (e) {}
+    } catch {
+      // Ignore local storage quota/private browsing write errors
+    }
 
     // Persist reset via PUT /api/portfolio
     await updateData(defaultData);

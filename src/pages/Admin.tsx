@@ -553,11 +553,11 @@ const Admin = () => {
                         <label className="block font-bold text-xs uppercase tracking-wider mb-1 text-black">GitHub Repository URL</label>
                         <input
                           type="text"
-                          value={project.links?.find((l: any) => l.label?.toLowerCase().includes("github"))?.url || project.links?.[0]?.url || ""}
+                          value={project.links?.find((l: { label: string; url: string }) => l.label?.toLowerCase().includes("github"))?.url || project.links?.[0]?.url || ""}
                           placeholder="https://github.com/username/repo"
                           onChange={(e) => {
                             const updated = [...formData.projects.cards];
-                            const deployUrl = updated[pIdx].links?.find((l: any) => l.label?.toLowerCase().includes("live") || l.label?.toLowerCase().includes("demo"))?.url || updated[pIdx].links?.[1]?.url || "";
+                            const deployUrl = updated[pIdx].links?.find((l: { label: string; url: string }) => l.label?.toLowerCase().includes("live") || l.label?.toLowerCase().includes("demo"))?.url || updated[pIdx].links?.[1]?.url || "";
                             updated[pIdx].links = [
                               { label: "GitHub Code", url: e.target.value },
                               ...(deployUrl ? [{ label: "Live Demo", url: deployUrl }] : [])
@@ -571,11 +571,11 @@ const Admin = () => {
                         <label className="block font-bold text-xs uppercase tracking-wider mb-1 text-black">Live Deployment URL (Optional)</label>
                         <input
                           type="text"
-                          value={project.links?.find((l: any) => l.label?.toLowerCase().includes("live") || l.label?.toLowerCase().includes("demo"))?.url || (project.links?.[1]?.url && !project.links[1].url.includes("github.com") ? project.links[1].url : "")}
+                          value={project.links?.find((l: { label: string; url: string }) => l.label?.toLowerCase().includes("live") || l.label?.toLowerCase().includes("demo"))?.url || (project.links?.[1]?.url && !project.links[1].url.includes("github.com") ? project.links[1].url : "")}
                           placeholder="https://your-app.vercel.app (or leave empty)"
                           onChange={(e) => {
                             const updated = [...formData.projects.cards];
-                            const githubUrl = updated[pIdx].links?.find((l: any) => l.label?.toLowerCase().includes("github"))?.url || updated[pIdx].links?.[0]?.url || "";
+                            const githubUrl = updated[pIdx].links?.find((l: { label: string; url: string }) => l.label?.toLowerCase().includes("github"))?.url || updated[pIdx].links?.[0]?.url || "";
                             updated[pIdx].links = [
                               ...(githubUrl ? [{ label: "GitHub Code", url: githubUrl }] : []),
                               ...(e.target.value.trim() ? [{ label: "Live Demo", url: e.target.value.trim() }] : [])
