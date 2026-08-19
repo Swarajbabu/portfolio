@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 
 import nodemailer from "nodemailer";
@@ -751,12 +752,22 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Serve static React build files in production mode
-if (process.env.NODE_ENV === "production") {
-  const clientBuildPath = path.join(__dirname, "../dist");
+// Serve static React build files if dist/ exists; otherwise provide clean API root
+const clientBuildPath = path.join(__dirname, "../dist");
+if (fs.existsSync(path.join(clientBuildPath, "index.html"))) {
   app.use(express.static(clientBuildPath, { maxAge: "1d" }));
   app.get("*", (req, res) => {
     res.sendFile(path.join(clientBuildPath, "index.html"));
+  });
+} else {
+  app.get("/", (req, res) => {
+    res.json({
+      service: "Swaraj Portfolio High-Performance Backend API",
+      status: "online",
+      health: "/api/health",
+      mongoState: mongoose.connection.readyState === 1 ? "connected" : "connecting",
+      timestamp: new Date()
+    });
   });
 }
 
