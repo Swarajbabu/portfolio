@@ -1,0 +1,120 @@
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { portfolioData as defaultData } from "@/data/portfolio";
+
+type PortfolioData = typeof defaultData;
+
+interface PortfolioContextType {
+  data: PortfolioData;
+  updateData: (newData: PortfolioData) => Promise<void>;
+  resetData: () => Promise<void>;
+  exportJSON: () => void;
+  isLoading: boolean;
+  isMongoConnected: boolean;
+}
+
+const STORAGE_KEY = "swaraj_portfolio_data_v1";
+
+const PortfolioContext = createContext<PortfolioContextType | undefined>(undefined);
+
+export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [data, setData] = useState<PortfolioData>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error("Local storage error:", e);
+    }
+    return defaultData;
+  });
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [isMongoConnected, setIsMongoConnected] = useState(false);
+
+  // Fetch portfolio data from MongoDB Atlas API on mount
+  useEffect(() => {
+    const fetchPortfolioFromMongo = async () => {
+      try {
+        const response = await fetch("/api/portfolio");
+        if (response.ok) {
+          const mongoData = await response.json();
+          if (mongoData && mongoData.personal) {
+            setData(mongoData);
+            setIsMongoConnected(true);
+            try {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(mongoData));
+            } catch (e) {}
+          }
+        }
+      } catch (err) {
+        console.warn("Could not connect to MongoDB Atlas API server, using local data fallback:", err);
+        setIsMongoConnected(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchPortfolioFromMongo();
+  }, []);
+
+  const updateData = async (newData: PortfolioData) => {
+    setData(newData);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newData));
+    } catch (e) {}
+
+    try {
+      const response = await fetch("/api/portfolio", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newData),
+      });
+      if (response.ok) {
+        setIsMongoConnected(true);
+      }
+    } catch (err) {
+      console.error("Failed to sync update to MongoDB Atlas:", err);
+    }
+  };
+
+  const resetData = async () => {
+    setData(defaultData);
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (e) {}
+
+    try {
+      const response = await fetch("/api/portfolio/reset", {
+        method: "POST",
+      });
+      if (response.ok) {
+        setIsMongoConnected(true);
+      }
+    } catch (err) {
+      console.error("Failed to reset MongoDB Atlas data:", err);
+    }
+  };
+
+  const exportJSON = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+    const downloadAnchor = document.createElement("a");
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", "portfolio-data.json");
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
+
+  return (
+    <PortfolioContext.Provider value={{ data, updateData, resetData, exportJSON, isLoading, isMongoConnected }}>
+      {children}
+    </PortfolioContext.Provider>
+  );
+};
+
+export const usePortfolio = (): PortfolioContextType => {
+  const context = useContext(PortfolioContext);
+  if (!context) {
+    throw new Error("usePortfolio must be used within a PortfolioProvider");
+  }
+  return context;
+};

@@ -1,0 +1,214 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 47 100% 98%;
+    --foreground: 0 0% 0%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 0%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+
+    --primary: 0 100% 71%;
+    --primary-foreground: 0 0% 0%;
+
+    --secondary: 45 100% 62%;
+    --secondary-foreground: 0 0% 0%;
+
+    --muted: 257 95% 85%;
+    --muted-foreground: 0 0% 0%;
+
+    --accent: 257 95% 85%;
+    --accent-foreground: 0 0% 0%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 0%;
+    --input: 0 0% 0%;
+    --ring: 0 0% 0%;
+
+    --radius: 0px;
+
+    --neo-accent: 0 100% 71%;
+    --neo-secondary: 45 100% 62%;
+    --neo-muted: 257 95% 85%;
+    --neo-cream: 47 100% 98%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-family: 'Space Grotesk', sans-serif;
+    user-select: none; /* Disable text selection globally */
+  }
+
+  /* Re-enable selection for inputs and textareas */
+  input, textarea {
+    user-select: text;
+  }
+
+  /* Image protection */
+  img {
+    pointer-events: none; /* Disable right-click/save on images */
+    -webkit-user-drag: none; /* Disable dragging */
+  }
+}
+
+@layer utilities {
+  .neo-shadow-sm {
+    box-shadow: 4px 4px 0px 0px #000;
+  }
+  .neo-shadow-md {
+    box-shadow: 8px 8px 0px 0px #000;
+  }
+  .neo-shadow-lg {
+    box-shadow: 12px 12px 0px 0px #000;
+  }
+  .neo-shadow-xl {
+    box-shadow: 16px 16px 0px 0px #000;
+  }
+  .neo-shadow-white {
+    box-shadow: 8px 8px 0px 0px #fff;
+  }
+
+  .neo-border {
+    @apply border-4 border-foreground;
+  }
+
+  .neo-border-thin {
+    @apply border-2 border-foreground;
+  }
+
+  .text-stroke {
+    -webkit-text-stroke: 2px black;
+    color: transparent;
+  }
+
+  .text-stroke-thin {
+    -webkit-text-stroke: 1px black;
+    color: transparent;
+  }
+
+  .neo-btn-press {
+    @apply transition-all duration-100;
+  }
+  .neo-btn-press:active {
+    transform: translate(4px, 4px);
+    box-shadow: none;
+  }
+
+  .neo-card-hover {
+    @apply transition-all duration-200;
+  }
+  .neo-card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 12px 12px 0px 0px #000;
+  }
+
+  .halftone-bg {
+    background-image: radial-gradient(#000 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .grid-bg {
+    background-size: 40px 40px;
+    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.06) 1px, transparent 1px),
+                      linear-gradient(to bottom, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+  }
+
+  /* Flip Card Utilities */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  .backface-hidden {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes typing-cursor {
+  0%, 100% { border-color: transparent; }
+  50% { border-color: black; }
+}
+
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-18px); }
+}
+
+@keyframes float-x {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(14px); }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(6deg); }
+  75% { transform: rotate(-6deg); }
+}
+
+@keyframes pulse-scale {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(8px, -12px) rotate(5deg); }
+  66% { transform: translate(-6px, 8px) rotate(-3deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 12s linear infinite;
+}
+
+.animate-float-y {
+  animation: float-y 4s ease-in-out infinite;
+}
+
+.animate-float-x {
+  animation: float-x 5s ease-in-out infinite;
+}
+
+.animate-wiggle {
+  animation: wiggle 3s ease-in-out infinite;
+}
+
+.animate-pulse-scale {
+  animation: pulse-scale 3s ease-in-out infinite;
+}
+
+.animate-drift {
+  animation: drift 6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin-slow, .animate-bounce, .animate-pulse,
+  .animate-float-y, .animate-float-x, .animate-wiggle,
+  .animate-pulse-scale, .animate-drift {
+    animation: none;
+  }
+}
