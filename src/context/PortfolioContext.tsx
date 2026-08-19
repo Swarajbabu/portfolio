@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { portfolioData as defaultData } from "@/data/portfolio";
+import { getApiUrl } from "@/lib/api";
 
 type PortfolioData = typeof defaultData;
 
@@ -34,7 +35,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   useEffect(() => {
     const fetchPortfolioFromMongo = async () => {
       try {
-        const response = await fetch("/api/portfolio");
+        const response = await fetch(getApiUrl("/api/portfolio"));
         if (response.ok) {
           const mongoData = await response.json();
           if (mongoData && mongoData.personal) {
@@ -67,7 +68,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
 
     try {
-      const response = await fetch("/api/portfolio", {
+      const response = await fetch(getApiUrl("/api/portfolio"), {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

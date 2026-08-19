@@ -58,6 +58,7 @@
     "lucide-react": "^0.462.0",
     "mongoose": "^8.10.0",
     "next-themes": "^0.3.0",
+    "nodemailer": "^9.0.5",
     "posthog-js": "^1.364.6",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { usePortfolio } from "@/context/PortfolioContext";
 import { Send, Mail, Phone, Linkedin, Star, MessageSquare, ExternalLink, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { getApiUrl } from "@/lib/api";
 
 const ContactSection = () => {
   const { data } = usePortfolio();
@@ -60,7 +61,7 @@ const ContactSection = () => {
 
       // 2. Also save to MongoDB Atlas via backend API
       try {
-        await fetch("/api/contact", {
+        await fetch(getApiUrl("/api/contact"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

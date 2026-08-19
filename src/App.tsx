@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -11,6 +11,8 @@ const Admin = lazy(() => import("./pages/Admin"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 import { useContentProtection } from "./hooks/useContentProtection";
+
+import { getApiUrl } from "@/lib/api";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +27,17 @@ const PageLoader = () => (
 
 const App = () => {
   useContentProtection();
+
+  // Track visitor once per session
+  useEffect(() => {
+    if (sessionStorage.getItem("visit_tracked")) return;
+    sessionStorage.setItem("visit_tracked", "1");
+    fetch(getApiUrl("/api/track-visit"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ page: window.location.pathname + window.location.hash }),
+    }).catch(() => { /* tracking failure is silent */ });
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

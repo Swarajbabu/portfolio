@@ -118,29 +118,53 @@ const ProjectsSection = () => {
             </h2>
           </div>
 
-          {/* TOP CONTROLS: Arrow Nav & View All Toggle (Visible at 100% Zoom without scrolling!) */}
+          {/* TOP CONTROLS: Neo-Brutalist Pagination & View All Toggle */}
           <div className="flex flex-wrap items-center gap-3 bg-white border-2 border-black p-2 shadow-[4px_4px_0px_0px_#000]">
             {!viewAll && totalPages > 1 && (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
+                {/* Prev Button */}
                 <button
                   onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 0))}
                   disabled={currentPage === 0}
                   aria-label="Previous Projects"
-                  className="border-2 border-black bg-neo-secondary hover:bg-yellow-300 disabled:opacity-30 disabled:pointer-events-none p-2 font-black text-xs uppercase neo-btn-press shadow-[2px_2px_0px_0px_#000] flex items-center gap-1 text-black"
+                  className={`w-8 h-8 border-2 border-black flex items-center justify-center font-black transition-all neo-btn-press ${
+                    currentPage === 0
+                      ? "bg-[#FFF9D2] opacity-40 border-black/40 text-black/40 cursor-not-allowed"
+                      : "bg-neo-secondary hover:bg-yellow-300 text-black shadow-[2px_2px_0px_0px_#000]"
+                  }`}
                   title="Previous projects (or press left arrow)"
                 >
                   <ChevronLeft className="h-4 w-4 stroke-[3]" />
                 </button>
 
-                <span className="font-black text-xs px-2 whitespace-nowrap">
-                  {currentPage + 1} / {totalPages}
-                </span>
+                {/* Page Number Buttons */}
+                {Array.from({ length: totalPages }).map((_, pIdx) => {
+                  const isActive = currentPage === pIdx;
+                  return (
+                    <button
+                      key={pIdx}
+                      onClick={() => setCurrentPage(pIdx)}
+                      className={`w-8 h-8 border-2 border-black font-black text-sm flex items-center justify-center transition-all neo-btn-press ${
+                        isActive
+                          ? "bg-black text-white shadow-[2px_2px_0px_0px_#FF6B6B] -translate-y-0.5"
+                          : "bg-white text-black hover:bg-yellow-100 shadow-[1px_1px_0px_0px_#000]"
+                      }`}
+                    >
+                      {pIdx + 1}
+                    </button>
+                  );
+                })}
 
+                {/* Next Button */}
                 <button
                   onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1))}
                   disabled={currentPage >= totalPages - 1}
                   aria-label="Next Projects"
-                  className="border-2 border-black bg-neo-accent hover:bg-red-400 disabled:opacity-30 disabled:pointer-events-none p-2 font-black text-xs uppercase neo-btn-press shadow-[2px_2px_0px_0px_#000] flex items-center gap-1 text-black"
+                  className={`w-8 h-8 border-2 border-black flex items-center justify-center font-black transition-all neo-btn-press ${
+                    currentPage >= totalPages - 1
+                      ? "bg-neo-accent opacity-40 border-black/40 text-black/40 cursor-not-allowed"
+                      : "bg-neo-accent hover:bg-red-400 text-black shadow-[2px_2px_0px_0px_#000]"
+                  }`}
                   title="Next projects (or press right arrow)"
                 >
                   <ChevronRight className="h-4 w-4 stroke-[3]" />
@@ -151,7 +175,7 @@ const ProjectsSection = () => {
             {filteredProjects.length > ITEMS_PER_PAGE && (
               <button
                 onClick={() => setViewAll(!viewAll)}
-                className="border-2 border-black bg-[#FAF8F5] hover:bg-yellow-100 px-3 py-1.5 font-black text-xs uppercase tracking-wider neo-btn-press shadow-[2px_2px_0px_0px_#000] flex items-center gap-1.5"
+                className="border-2 border-black bg-white hover:bg-neo-secondary px-3.5 py-1.5 font-black text-xs uppercase tracking-wider neo-btn-press shadow-[2px_2px_0px_0px_#000] flex items-center gap-1.5"
               >
                 {viewAll ? (
                   <>
@@ -169,9 +193,8 @@ const ProjectsSection = () => {
           </div>
         </div>
 
-        {/* Quick Project Jump Bar (Direct 1-Click Jumping at 100% Zoom) */}
+        {/* Category Filter Pills */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
-          {/* Category Filter Pills */}
           <div className="flex flex-wrap gap-2">
             {filterOptions.map((filter) => {
               const isSelected = activeFilter === filter;
@@ -190,26 +213,6 @@ const ProjectsSection = () => {
               );
             })}
           </div>
-
-          {/* Quick Page Jump Dots / Numbers */}
-          {!viewAll && totalPages > 1 && (
-            <div className="flex items-center gap-2 bg-[#FAF8F5] border-2 border-black px-3 py-1 shadow-[2px_2px_0px_0px_#000]">
-              <span className="text-[11px] font-black uppercase text-black/60">Jump to:</span>
-              {Array.from({ length: totalPages }).map((_, pIdx) => (
-                <button
-                  key={pIdx}
-                  onClick={() => setCurrentPage(pIdx)}
-                  className={`h-6 w-6 border border-black font-black text-xs flex items-center justify-center transition-all ${
-                    currentPage === pIdx
-                      ? "bg-black text-white shadow-[2px_2px_0px_0px_#FF6B6B] -translate-y-0.5"
-                      : "bg-white text-black hover:bg-yellow-200"
-                  }`}
-                >
-                  {pIdx + 1}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Projects Cards Container with Side Floating Arrows */}
@@ -332,7 +335,7 @@ const ProjectsSection = () => {
                         const githubLink = project.links?.find((l: { label: string; url: string }) => l.label?.toLowerCase().includes("github"))?.url || project.githubUrl || (project.links?.[0]?.url?.includes("github.com") ? project.links[0].url : "");
                         const deployLink = project.links?.find((l: { label: string; url: string }) => l.label?.toLowerCase().includes("live") || l.label?.toLowerCase().includes("demo") || l.label?.toLowerCase().includes("deploy"))?.url || project.deployUrl || project.liveUrl || (project.links?.[1]?.url || "");
 
-                        const hasValidDeploy = deployLink && deployLink.trim() !== "" && deployLink !== "#" && !deployLink.endsWith("github.com/Swarajbabu");
+                        const hasValidDeploy = deployLink && deployLink.trim() !== "" && deployLink !== "#";
 
                         return (
                           <>
