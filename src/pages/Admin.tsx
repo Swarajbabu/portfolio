@@ -531,12 +531,12 @@ const Admin = () => {
       <div className="min-h-screen bg-[#F7F4EA] flex items-center justify-center p-4">
         {renderPasskeyModal()}
 
-        <div className="border-4 border-black bg-white p-8 max-w-md w-full shadow-[8px_8px_0px_0px_#000] text-center">
-          <div className="border-2 border-black bg-neo-accent p-4 inline-block mb-6 rotate-3 shadow-[4px_4px_0px_0px_#000]">
-            <Lock className="h-10 w-10 text-black" strokeWidth={3} />
+        <div className="border-4 border-black bg-white p-5 sm:p-8 max-w-md w-full shadow-[6px_6px_0px_0px_#000] sm:shadow-[8px_8px_0px_0px_#000] text-center">
+          <div className="border-2 border-black bg-neo-accent p-3 sm:p-4 inline-block mb-4 sm:mb-6 rotate-3 shadow-[3px_3px_0px_0px_#000] sm:shadow-[4px_4px_0px_0px_#000]">
+            <Lock className="h-8 w-8 sm:h-10 sm:w-10 text-black" strokeWidth={3} />
           </div>
-          <h1 className="font-black text-2xl uppercase tracking-tight mb-1 text-black">Admin Portal Lock</h1>
-          <p className="font-bold text-xs uppercase tracking-widest text-black/70 mb-6">Enter passkey to access CMS settings</p>
+          <h1 className="font-black text-xl sm:text-2xl uppercase tracking-tight mb-1 text-black">Admin Portal Lock</h1>
+          <p className="font-bold text-[11px] sm:text-xs uppercase tracking-widest text-black/70 mb-5 sm:mb-6">Enter passkey to access CMS settings</p>
           
           {lockoutRemaining > 0 ? (
             <div className="space-y-4">
@@ -612,59 +612,59 @@ const Admin = () => {
 
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Admin Header */}
-        <header className="border-4 border-black bg-white p-6 shadow-[8px_8px_0px_0px_#000] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <header className="border-4 border-black bg-white p-4 sm:p-6 shadow-[6px_6px_0px_0px_#000] sm:shadow-[8px_8px_0px_0px_#000] flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-3">
-              <Link to="/" className="border-2 border-black bg-neo-accent p-2 shadow-[3px_3px_0px_0px_#000] neo-btn-press">
-                <ArrowLeft className="h-5 w-5 text-black" strokeWidth={3} />
+              <Link to="/" className="border-2 border-black bg-neo-accent p-2 shadow-[3px_3px_0px_0px_#000] neo-btn-press flex-shrink-0">
+                <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 text-black" strokeWidth={3} />
               </Link>
-              <h1 className="font-black text-2xl sm:text-3xl uppercase tracking-tight text-black">Portfolio Admin Portal</h1>
+              <h1 className="font-black text-xl sm:text-2xl md:text-3xl uppercase tracking-tight text-black">Portfolio Admin Portal</h1>
             </div>
-            <p className="font-bold text-xs uppercase tracking-widest text-black/70 mt-1">
+            <p className="font-bold text-[11px] sm:text-xs uppercase tracking-widest text-black/70 mt-1">
               Dynamically edit main page text, skills, projects, & certs
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-3 w-full md:w-auto">
             <button
               onClick={() => setShowPasskeyModal(true)}
-              className="border-2 border-black bg-[#FAF8F5] hover:bg-yellow-200 px-4 py-2.5 font-black text-sm uppercase tracking-wide shadow-[4px_4px_0px_0px_#000] neo-btn-press flex items-center gap-2 text-black"
+              className="w-full sm:w-auto border-2 border-black bg-[#FAF8F5] hover:bg-yellow-200 px-3 py-2 sm:px-4 sm:py-2.5 font-black text-xs sm:text-sm uppercase tracking-wide shadow-[3px_3px_0px_0px_#000] sm:shadow-[4px_4px_0px_0px_#000] neo-btn-press flex items-center justify-center gap-1.5 sm:gap-2 text-black"
             >
-              <Key className="h-4 w-4" strokeWidth={3} />
-              Passkey
+              <Key className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={3} />
+              <span>Passkey</span>
             </button>
             <button
               onClick={handleSave}
-              className="border-2 border-black bg-neo-accent px-5 py-2.5 font-black text-sm uppercase tracking-wide shadow-[4px_4px_0px_0px_#000] neo-btn-press flex items-center gap-2 text-black"
+              className="w-full sm:w-auto border-2 border-black bg-neo-accent px-3 py-2 sm:px-5 sm:py-2.5 font-black text-xs sm:text-sm uppercase tracking-wide shadow-[3px_3px_0px_0px_#000] sm:shadow-[4px_4px_0px_0px_#000] neo-btn-press flex items-center justify-center gap-1.5 sm:gap-2 text-black"
             >
-              <Save className="h-4 w-4" strokeWidth={3} />
-              Save Changes
+              <Save className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={3} />
+              <span>Save</span>
             </button>
             <button
               onClick={handleReset}
-              className="border-2 border-black bg-neo-muted px-4 py-2.5 font-black text-sm uppercase tracking-wide shadow-[4px_4px_0px_0px_#000] neo-btn-press flex items-center gap-2 text-black"
+              className="w-full sm:w-auto border-2 border-black bg-neo-muted px-3 py-2 sm:px-4 sm:py-2.5 font-black text-xs sm:text-sm uppercase tracking-wide shadow-[3px_3px_0px_0px_#000] sm:shadow-[4px_4px_0px_0px_#000] neo-btn-press flex items-center justify-center gap-1.5 sm:gap-2 text-black"
             >
-              <RotateCcw className="h-4 w-4" strokeWidth={3} />
-              Reset Defaults
+              <RotateCcw className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={3} />
+              <span>Reset</span>
             </button>
             <button
               onClick={exportJSON}
-              className="border-2 border-black bg-neo-secondary px-4 py-2.5 font-black text-sm uppercase tracking-wide shadow-[4px_4px_0px_0px_#000] neo-btn-press flex items-center gap-2 text-black"
+              className="w-full sm:w-auto border-2 border-black bg-neo-secondary px-3 py-2 sm:px-4 sm:py-2.5 font-black text-xs sm:text-sm uppercase tracking-wide shadow-[3px_3px_0px_0px_#000] sm:shadow-[4px_4px_0px_0px_#000] neo-btn-press flex items-center justify-center gap-1.5 sm:gap-2 text-black"
             >
-              <Download className="h-4 w-4" strokeWidth={3} />
-              Export JSON
+              <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={3} />
+              <span>Export</span>
             </button>
           </div>
         </header>
 
         {/* Tab Navigation */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex overflow-x-auto no-scrollbar gap-2 pb-1.5 sm:pb-0 sm:flex-wrap -mx-1 px-1 sm:mx-0 sm:px-0">
           {(["personal", "about", "skills", "projects", "certs", "education", "contact", "analytics"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`border-2 border-black px-5 py-2.5 font-black text-xs uppercase tracking-widest neo-btn-press transition-all ${
-                activeTab === tab ? "bg-neo-accent shadow-[4px_4px_0px_0px_#000] text-black -translate-y-1" : "bg-white hover:bg-neo-secondary shadow-[2px_2px_0px_0px_#000] text-black"
+              className={`flex-shrink-0 border-2 border-black px-3.5 py-2 sm:px-5 sm:py-2.5 font-black text-xs uppercase tracking-widest whitespace-nowrap neo-btn-press transition-all ${
+                activeTab === tab ? "bg-neo-accent shadow-[3px_3px_0px_0px_#000] sm:shadow-[4px_4px_0px_0px_#000] text-black -translate-y-0.5 sm:-translate-y-1" : "bg-white hover:bg-neo-secondary shadow-[2px_2px_0px_0px_#000] text-black"
               }`}
             >
               {tab === "certs" ? "Certifications" : tab === "analytics" ? "📊 Analytics" : tab}
@@ -673,12 +673,12 @@ const Admin = () => {
         </div>
 
         {/* Tab Content Panel */}
-        <div className="border-4 border-black bg-[#FAF8F5] p-6 sm:p-8 shadow-[8px_8px_0px_0px_#000]">
+        <div className="border-4 border-black bg-[#FAF8F5] p-4 sm:p-8 shadow-[6px_6px_0px_0px_#000] sm:shadow-[8px_8px_0px_0px_#000]">
           {/* TAB 1: PERSONAL & HERO */}
           {activeTab === "personal" && (
             <div className="space-y-6">
               <div className="bg-neo-accent border-2 border-black p-3 shadow-[4px_4px_0px_0px_#000]">
-                <h2 className="font-black text-xl uppercase tracking-tight text-black">Personal & Hero Details</h2>
+                <h2 className="font-black text-lg sm:text-xl uppercase tracking-tight text-black">Personal & Hero Details</h2>
               </div>
 
               {/* Hero Profile Photo Uploader */}
@@ -695,7 +695,7 @@ const Admin = () => {
                     />
                   </div>
                   <div className="flex-1 w-full space-y-2">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                       <input
                         type="text"
                         value={formData.personal.avatar || ""}
@@ -703,7 +703,7 @@ const Admin = () => {
                         placeholder="Paste image URL or click upload..."
                         className="flex-1 border-2 border-black bg-[#F7F4EA] px-3.5 py-2.5 font-bold text-xs sm:text-sm text-black focus:bg-yellow-100 focus:outline-none"
                       />
-                      <label className="border-2 border-black bg-neo-accent hover:bg-red-400 px-4 py-2.5 font-black text-xs uppercase tracking-wider text-black cursor-pointer neo-btn-press shadow-[3px_3px_0px_0px_#000] flex items-center gap-1.5 whitespace-nowrap">
+                      <label className="border-2 border-black bg-neo-accent hover:bg-red-400 px-4 py-2.5 font-black text-xs uppercase tracking-wider text-black cursor-pointer neo-btn-press shadow-[3px_3px_0px_0px_#000] flex items-center justify-center gap-1.5 whitespace-nowrap">
                         <Upload className="h-4 w-4" />
                         <span>Upload Photo</span>
                         <input
@@ -738,7 +738,7 @@ const Admin = () => {
                 </label>
                 <div className="flex flex-col sm:flex-row items-start gap-4">
                   <div className="flex-1 w-full space-y-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                       <input
                         type="text"
                         value={formData.personal.resumeUrl || ""}
@@ -746,7 +746,7 @@ const Admin = () => {
                         placeholder="Paste CV URL or upload a PDF file..."
                         className="flex-1 border-2 border-black bg-[#F7F4EA] px-3.5 py-2.5 font-bold text-xs sm:text-sm text-black focus:bg-yellow-100 focus:outline-none"
                       />
-                      <label className="border-2 border-black bg-neo-secondary hover:bg-yellow-300 px-4 py-2.5 font-black text-xs uppercase tracking-wider text-black cursor-pointer neo-btn-press shadow-[3px_3px_0px_0px_#000] flex items-center gap-1.5 whitespace-nowrap">
+                      <label className="border-2 border-black bg-neo-secondary hover:bg-yellow-300 px-4 py-2.5 font-black text-xs uppercase tracking-wider text-black cursor-pointer neo-btn-press shadow-[3px_3px_0px_0px_#000] flex items-center justify-center gap-1.5 whitespace-nowrap">
                         <Upload className="h-4 w-4" />
                         <span>Upload PDF</span>
                         <input
@@ -955,12 +955,12 @@ const Admin = () => {
           {/* TAB 3: SKILLS */}
           {activeTab === "skills" && (
             <div className="space-y-6">
-              <div className="bg-neo-muted border-2 border-black p-3 shadow-[4px_4px_0px_0px_#000] flex items-center justify-between">
-                <h2 className="font-black text-xl uppercase tracking-tight text-black">Skills Categories</h2>
+              <div className="bg-neo-muted border-2 border-black p-3 shadow-[4px_4px_0px_0px_#000] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <h2 className="font-black text-lg sm:text-xl uppercase tracking-tight text-black">Skills Categories</h2>
                 <button
                   type="button"
                   onClick={() => setFormData({ ...formData, skills: { ...formData.skills, groups: [...formData.skills.groups, { heading: "New Group", items: ["Skill 1", "Skill 2"] }] } })}
-                  className="border-2 border-black bg-neo-accent px-4 py-1.5 font-black text-xs uppercase neo-btn-press flex items-center gap-1 text-black shadow-[2px_2px_0px_0px_#000]"
+                  className="border-2 border-black bg-neo-accent px-4 py-1.5 font-black text-xs uppercase neo-btn-press flex items-center gap-1 text-black shadow-[2px_2px_0px_0px_#000] self-start sm:self-auto"
                 >
                   <Plus className="h-4 w-4" /> Add Skill Category
                 </button>
@@ -1014,8 +1014,8 @@ const Admin = () => {
           {/* TAB 4: PROJECTS */}
           {activeTab === "projects" && (
             <div className="space-y-6">
-              <div className="bg-neo-accent border-2 border-black p-3 shadow-[4px_4px_0px_0px_#000] flex items-center justify-between">
-                <h2 className="font-black text-xl uppercase tracking-tight text-black">Projects</h2>
+              <div className="bg-neo-accent border-2 border-black p-3 shadow-[4px_4px_0px_0px_#000] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <h2 className="font-black text-lg sm:text-xl uppercase tracking-tight text-black">Projects</h2>
                 <button
                   type="button"
                   onClick={() => setFormData({
@@ -1037,7 +1037,7 @@ const Admin = () => {
                       ]
                     }
                   })}
-                  className="border-2 border-black bg-white px-4 py-1.5 font-black text-xs uppercase neo-btn-press flex items-center gap-1 text-black shadow-[2px_2px_0px_0px_#000]"
+                  className="border-2 border-black bg-white px-4 py-1.5 font-black text-xs uppercase neo-btn-press flex items-center gap-1 text-black shadow-[2px_2px_0px_0px_#000] self-start sm:self-auto"
                 >
                   <Plus className="h-4 w-4" /> Add Project
                 </button>
@@ -1045,7 +1045,7 @@ const Admin = () => {
 
               <div className="space-y-6">
                 {formData.projects.cards.map((project, pIdx) => (
-                  <div key={pIdx} className="border-4 border-black bg-white p-6 shadow-[6px_6px_0px_0px_#000] space-y-4">
+                  <div key={pIdx} className="border-4 border-black bg-white p-4 sm:p-6 shadow-[6px_6px_0px_0px_#000] space-y-4">
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                       <input
                         type="text"
@@ -1161,26 +1161,28 @@ const Admin = () => {
 
                     <div>
                       <label className="block font-bold text-xs uppercase tracking-wider mb-1 text-black">Project Preview Image (URL / Cloudinary)</label>
-                      <div className="flex items-center gap-3">
-                        {project.image && (
-                          <img
-                            src={project.image}
-                            alt={project.name}
-                            className="h-12 w-20 object-cover border-2 border-black shadow-[2px_2px_0px_0px_#000]"
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+                        <div className="flex items-center gap-2 flex-1">
+                          {project.image && (
+                            <img
+                              src={project.image}
+                              alt={project.name}
+                              className="h-10 sm:h-12 w-16 sm:w-20 object-cover border-2 border-black shadow-[2px_2px_0px_0px_#000] flex-shrink-0"
+                            />
+                          )}
+                          <input
+                            type="text"
+                            value={project.image || ""}
+                            onChange={(e) => {
+                              const updated = [...formData.projects.cards];
+                              updated[pIdx].image = e.target.value;
+                              setFormData({ ...formData, projects: { ...formData.projects, cards: updated } });
+                            }}
+                            placeholder="Paste image URL or upload file..."
+                            className="flex-1 border-2 border-black bg-[#F7F4EA] px-3 py-2 font-bold text-xs text-black focus:bg-yellow-100 focus:outline-none"
                           />
-                        )}
-                        <input
-                          type="text"
-                          value={project.image || ""}
-                          onChange={(e) => {
-                            const updated = [...formData.projects.cards];
-                            updated[pIdx].image = e.target.value;
-                            setFormData({ ...formData, projects: { ...formData.projects, cards: updated } });
-                          }}
-                          placeholder="Paste image URL or upload file..."
-                          className="flex-1 border-2 border-black bg-[#F7F4EA] px-3 py-2 font-bold text-xs text-black focus:bg-yellow-100 focus:outline-none"
-                        />
-                        <label className="border-2 border-black bg-neo-secondary hover:bg-yellow-300 px-3 py-2 font-black text-xs uppercase tracking-wider text-black cursor-pointer neo-btn-press shadow-[2px_2px_0px_0px_#000] flex items-center gap-1.5 whitespace-nowrap">
+                        </div>
+                        <label className="border-2 border-black bg-neo-secondary hover:bg-yellow-300 px-4 py-2 font-black text-xs uppercase tracking-wider text-black cursor-pointer neo-btn-press shadow-[2px_2px_0px_0px_#000] flex items-center justify-center gap-1.5 whitespace-nowrap">
                           <Upload className="h-3.5 w-3.5" />
                           <span>Upload</span>
                           <input
@@ -1210,8 +1212,8 @@ const Admin = () => {
           {/* TAB 5: CERTIFICATIONS */}
           {activeTab === "certs" && (
             <div className="space-y-6">
-              <div className="bg-neo-secondary border-2 border-black p-3 shadow-[4px_4px_0px_0px_#000] flex items-center justify-between">
-                <h2 className="font-black text-xl uppercase tracking-tight text-black">Certifications & Achievements</h2>
+              <div className="bg-neo-secondary border-2 border-black p-3 shadow-[4px_4px_0px_0px_#000] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <h2 className="font-black text-lg sm:text-xl uppercase tracking-tight text-black">Certifications & Achievements</h2>
                 <button
                   type="button"
                   onClick={() => setFormData({
@@ -1231,7 +1233,7 @@ const Admin = () => {
                       ]
                     }
                   })}
-                  className="border-2 border-black bg-neo-accent px-4 py-1.5 font-black text-xs uppercase neo-btn-press flex items-center gap-1 text-black shadow-[2px_2px_0px_0px_#000]"
+                  className="border-2 border-black bg-neo-accent px-4 py-1.5 font-black text-xs uppercase neo-btn-press flex items-center gap-1 text-black shadow-[2px_2px_0px_0px_#000] self-start sm:self-auto"
                 >
                   <Plus className="h-4 w-4" /> Add Item
                 </button>
@@ -1239,8 +1241,8 @@ const Admin = () => {
 
               <div className="space-y-6">
                 {formData.experience.items.map((item, cIdx) => (
-                  <div key={cIdx} className="border-4 border-black bg-white p-5 shadow-[6px_6px_0px_0px_#000] space-y-4">
-                    <div className="flex items-center gap-3">
+                  <div key={cIdx} className="border-4 border-black bg-white p-4 sm:p-5 shadow-[6px_6px_0px_0px_#000] space-y-4">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3">
                       <input
                         type="text"
                         value={item.role}
@@ -1259,7 +1261,7 @@ const Admin = () => {
                           updated[cIdx].period = e.target.value;
                           setFormData({ ...formData, experience: { ...formData.experience, items: updated } });
                         }}
-                        className="w-28 border-2 border-black bg-neo-accent px-3 py-2 font-bold text-xs text-center uppercase text-black"
+                        className="w-full sm:w-28 border-2 border-black bg-neo-accent px-3 py-2 font-bold text-xs text-center uppercase text-black"
                       />
                       <button
                         type="button"
@@ -1267,7 +1269,7 @@ const Admin = () => {
                           const updated = formData.experience.items.filter((_, i) => i !== cIdx);
                           setFormData({ ...formData, experience: { ...formData.experience, items: updated } });
                         }}
-                        className="border-2 border-black bg-red-400 p-2 neo-btn-press shadow-[2px_2px_0px_0px_#000]"
+                        className="border-2 border-black bg-red-400 p-2 neo-btn-press shadow-[2px_2px_0px_0px_#000] self-end sm:self-auto"
                       >
                         <Trash2 className="h-4 w-4 text-black" />
                       </button>
@@ -1304,26 +1306,28 @@ const Admin = () => {
 
                     <div>
                       <label className="block font-bold text-xs uppercase tracking-wider mb-1 text-black">Certificate Image / Badge (URL / Cloudinary)</label>
-                      <div className="flex items-center gap-3">
-                        {item.image && (
-                          <img
-                            src={item.image}
-                            alt={item.role}
-                            className="h-10 w-16 object-cover border-2 border-black shadow-[2px_2px_0px_0px_#000]"
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+                        <div className="flex items-center gap-2 flex-1">
+                          {item.image && (
+                            <img
+                              src={item.image}
+                              alt={item.role}
+                              className="h-10 w-16 object-cover border-2 border-black shadow-[2px_2px_0px_0px_#000] flex-shrink-0"
+                            />
+                          )}
+                          <input
+                            type="text"
+                            value={item.image || ""}
+                            onChange={(e) => {
+                              const updated = [...formData.experience.items];
+                              updated[cIdx].image = e.target.value;
+                              setFormData({ ...formData, experience: { ...formData.experience, items: updated } });
+                            }}
+                            placeholder="Paste certificate image URL or upload..."
+                            className="flex-1 border-2 border-black bg-[#F7F4EA] px-3 py-2 font-bold text-xs text-black focus:bg-yellow-100 focus:outline-none"
                           />
-                        )}
-                        <input
-                          type="text"
-                          value={item.image || ""}
-                          onChange={(e) => {
-                            const updated = [...formData.experience.items];
-                            updated[cIdx].image = e.target.value;
-                            setFormData({ ...formData, experience: { ...formData.experience, items: updated } });
-                          }}
-                          placeholder="Paste certificate image URL or upload..."
-                          className="flex-1 border-2 border-black bg-[#F7F4EA] px-3 py-2 font-bold text-xs text-black focus:bg-yellow-100 focus:outline-none"
-                        />
-                        <label className="border-2 border-black bg-neo-accent hover:bg-red-400 px-3 py-2 font-black text-xs uppercase tracking-wider text-black cursor-pointer neo-btn-press shadow-[2px_2px_0px_0px_#000] flex items-center gap-1.5 whitespace-nowrap">
+                        </div>
+                        <label className="border-2 border-black bg-neo-accent hover:bg-red-400 px-4 py-2 font-black text-xs uppercase tracking-wider text-black cursor-pointer neo-btn-press shadow-[2px_2px_0px_0px_#000] flex items-center justify-center gap-1.5 whitespace-nowrap">
                           <Upload className="h-3.5 w-3.5" />
                           <span>Upload</span>
                           <input
@@ -1666,9 +1670,9 @@ const Admin = () => {
           {activeTab === "analytics" && (
             <div className="space-y-6">
               {/* Section Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="bg-neo-accent border-2 border-black p-3 shadow-[4px_4px_0px_0px_#000]">
-                  <h2 className="font-black text-lg uppercase tracking-widest flex items-center gap-2 text-black">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="bg-neo-accent border-2 border-black p-3 shadow-[4px_4px_0px_0px_#000] w-full sm:w-auto">
+                  <h2 className="font-black text-base sm:text-lg uppercase tracking-widest flex items-center gap-2 text-black">
                     <BarChart3 className="h-5 w-5" strokeWidth={3} />
                     Visitor Analytics Dashboard
                   </h2>
@@ -1676,7 +1680,7 @@ const Admin = () => {
                 <button
                   onClick={() => fetchAnalytics(visitorPage)}
                   disabled={analyticsLoading}
-                  className="border-2 border-black bg-neo-secondary hover:bg-yellow-300 px-5 py-2.5 font-black text-xs uppercase tracking-wider neo-btn-press shadow-[3px_3px_0px_0px_#000] flex items-center gap-2 text-black disabled:opacity-50"
+                  className="border-2 border-black bg-neo-secondary hover:bg-yellow-300 px-4 py-2 sm:px-5 sm:py-2.5 font-black text-xs uppercase tracking-wider neo-btn-press shadow-[3px_3px_0px_0px_#000] flex items-center justify-center gap-2 text-black disabled:opacity-50 self-stretch sm:self-auto"
                 >
                   <RefreshCw className={`h-4 w-4 ${analyticsLoading ? "animate-spin" : ""}`} strokeWidth={3} />
                   {analyticsLoading ? "Loading..." : "Refresh Data"}
