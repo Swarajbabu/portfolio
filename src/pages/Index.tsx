@@ -9,6 +9,8 @@ import EducationSection from "@/components/EducationSection";
 import CertificationsSection from "@/components/CertificationsSection";
 import ContactSection from "@/components/ContactSection";
 import FooterSection from "@/components/FooterSection";
+import ScrollProgressBar from "@/components/ScrollProgressBar";
+import ScrollToTopButton from "@/components/ScrollToTopButton";
 
 const Index = () => {
   const { isLoading, skipLoading } = usePortfolio();
@@ -19,6 +21,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
+      <ScrollProgressBar />
       <Navbar />
       <HeroSection />
       <AboutSection />
@@ -28,6 +31,7 @@ const Index = () => {
       <CertificationsSection />
       <ContactSection />
       <FooterSection />
+      <ScrollToTopButton />
     </div>
   );
 };

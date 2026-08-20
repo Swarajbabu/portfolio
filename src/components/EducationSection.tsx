@@ -11,6 +11,7 @@ import {
   MapPin,
   Flame
 } from "lucide-react";
+import RevealOnScroll from "@/components/RevealOnScroll";
 
 const EducationSection = () => {
   const { data } = usePortfolio();
@@ -31,30 +32,33 @@ const EducationSection = () => {
 
       <div className="max-w-6xl mx-auto px-4 sm:px-8 relative z-10">
         {/* Section Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-3">
-              <span className="inline-block border-4 border-black bg-neo-accent px-4 py-1.5 font-black text-sm uppercase tracking-widest shadow-[4px_4px_0px_0px_#000] -rotate-1">
-                {education.title}
-              </span>
-              <span className="border-2 border-black bg-white px-3 py-1 font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000]">
-                {education.entries.length} Milestones
-              </span>
+        <RevealOnScroll animation="fade-down">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-4">
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <span className="inline-block border-4 border-black bg-neo-accent px-4 py-1.5 font-black text-sm uppercase tracking-widest shadow-[4px_4px_0px_0px_#000] -rotate-1">
+                  {education.title}
+                </span>
+                <span className="border-2 border-black bg-white px-3 py-1 font-black text-xs uppercase tracking-wider shadow-[2px_2px_0px_0px_#000]">
+                  {education.entries.length} Milestones
+                </span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight">
+                Academic Background
+              </h2>
+              <p className="font-bold text-base text-foreground/70 mt-2 max-w-xl">
+                Formal education and rigorous foundational coursework in Computer Science, Machine Learning, and Mathematics.
+              </p>
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight">
-              Academic Background
-            </h2>
-            <p className="font-bold text-base text-foreground/70 mt-2 max-w-xl">
-              Formal education and rigorous foundational coursework in Computer Science, Machine Learning, and Mathematics.
-            </p>
           </div>
-        </div>
+        </RevealOnScroll>
 
         {/* Bento Cards Layout */}
         <div className="space-y-6">
           {/* FEATURED SPOTLIGHT CARD: B.TECH CSE (CURRENT DEGREE) */}
           {currentDegree && (
-            <div className="border-4 border-black bg-white p-6 sm:p-8 shadow-[8px_8px_0px_0px_#000] hover:shadow-[12px_12px_0px_0px_#000] hover:-translate-y-1 transition-all duration-200">
+            <RevealOnScroll animation="fade-up" delay={100}>
+              <div className="border-4 border-black bg-white p-6 sm:p-8 shadow-[8px_8px_0px_0px_#000] hover:shadow-[12px_12px_0px_0px_#000] hover:-translate-y-1 transition-all duration-200">
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 mb-6 border-b-2 border-black/10">
                 <div className="flex items-center gap-3">
                   <div className="border-2 border-black bg-neo-accent p-3 shadow-[3px_3px_0px_0px_#000]">
@@ -138,6 +142,7 @@ const EducationSection = () => {
                 </div>
               </div>
             </div>
+            </RevealOnScroll>
           )}
 
           {/* SECONDARY DEGREES: 2-COLUMN GRID */}
@@ -150,60 +155,61 @@ const EducationSection = () => {
               const badgeBg = isIntermediate ? "bg-[#22A6B3] text-white" : "bg-[#A855F7] text-white";
 
               return (
-                <div
-                  key={idx}
-                  className="border-4 border-black bg-white p-6 sm:p-7 shadow-[6px_6px_0px_0px_#000] hover:shadow-[10px_10px_0px_0px_#000] hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between"
-                >
-                  <div>
-                    {/* Top Meta Bar */}
-                    <div className="flex items-center justify-between gap-2 pb-4 mb-4 border-b-2 border-black/10">
-                      <span className={`border-2 border-black ${badgeBg} px-2.5 py-0.5 font-black text-xs uppercase tracking-widest shadow-[2px_2px_0px_0px_#000]`}>
-                        {badgeLabel}
-                      </span>
-                      <span className="border-2 border-black bg-[#FAF8F5] px-2.5 py-0.5 font-black text-xs uppercase tracking-wider flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {entry.period}
-                      </span>
+                <RevealOnScroll key={idx} animation="fade-up" delay={idx * 150} className="h-full">
+                  <div
+                    className="border-4 border-black bg-white p-6 sm:p-7 shadow-[6px_6px_0px_0px_#000] hover:shadow-[10px_10px_0px_0px_#000] hover:-translate-y-1 transition-all duration-200 flex flex-col justify-between h-full"
+                  >
+                    <div>
+                      {/* Top Meta Bar */}
+                      <div className="flex items-center justify-between gap-2 pb-4 mb-4 border-b-2 border-black/10">
+                        <span className={`border-2 border-black ${badgeBg} px-2.5 py-0.5 font-black text-xs uppercase tracking-widest shadow-[2px_2px_0px_0px_#000]`}>
+                          {badgeLabel}
+                        </span>
+                        <span className="border-2 border-black bg-[#FAF8F5] px-2.5 py-0.5 font-black text-xs uppercase tracking-wider flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {entry.period}
+                        </span>
+                      </div>
+
+                      {/* Degree Title */}
+                      <h4 className="font-black text-lg sm:text-xl uppercase tracking-tight text-black mb-2">
+                        {entry.degree}
+                      </h4>
+
+                      {/* Institution */}
+                      <p className="font-bold text-sm text-black/80 flex items-center gap-2 mb-4">
+                        <School className="h-4 w-4 text-black/60 flex-shrink-0" />
+                        <span>{entry.org}</span>
+                      </p>
+
+                      {/* Details */}
+                      <div className="space-y-1.5 mb-6">
+                        {entry.details.map((d: string, j: number) => {
+                          if (d.toLowerCase().includes("percentage")) return null;
+                          return (
+                            <div key={j} className="flex items-start gap-2 text-xs sm:text-sm font-bold text-black/70">
+                              <CheckCircle2 className="h-3.5 w-3.5 text-black flex-shrink-0 mt-0.5" />
+                              <span>{d}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
 
-                    {/* Degree Title */}
-                    <h4 className="font-black text-lg sm:text-xl uppercase tracking-tight text-black mb-2">
-                      {entry.degree}
-                    </h4>
-
-                    {/* Institution */}
-                    <p className="font-bold text-sm text-black/80 flex items-center gap-2 mb-4">
-                      <School className="h-4 w-4 text-black/60 flex-shrink-0" />
-                      <span>{entry.org}</span>
-                    </p>
-
-                    {/* Details */}
-                    <div className="space-y-1.5 mb-6">
-                      {entry.details.map((d: string, j: number) => {
-                        if (d.toLowerCase().includes("percentage")) return null;
-                        return (
-                          <div key={j} className="flex items-start gap-2 text-xs sm:text-sm font-bold text-black/70">
-                            <CheckCircle2 className="h-3.5 w-3.5 text-black flex-shrink-0 mt-0.5" />
-                            <span>{d}</span>
-                          </div>
-                        );
-                      })}
+                    {/* Score Highlight Strip */}
+                    <div className={`border-2 border-black ${accentColor} p-3.5 shadow-[3px_3px_0px_0px_#000] flex items-center justify-between`}>
+                      <div className="flex items-center gap-2">
+                        <Award className="h-5 w-5 text-black" strokeWidth={2.5} />
+                        <span className="font-black text-sm uppercase tracking-tight text-black">
+                          {detectedScore}
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-black/60">
+                        Verified
+                      </span>
                     </div>
                   </div>
-
-                  {/* Score Highlight Strip */}
-                  <div className={`border-2 border-black ${accentColor} p-3.5 shadow-[3px_3px_0px_0px_#000] flex items-center justify-between`}>
-                    <div className="flex items-center gap-2">
-                      <Award className="h-5 w-5 text-black" strokeWidth={2.5} />
-                      <span className="font-black text-sm uppercase tracking-tight text-black">
-                        {detectedScore}
-                      </span>
-                    </div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-black/60">
-                      Verified
-                    </span>
-                  </div>
-                </div>
+                </RevealOnScroll>
               );
             })}
           </div>
