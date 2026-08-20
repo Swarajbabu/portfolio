@@ -1,3 +1,5 @@
+import { usePortfolio } from "@/context/PortfolioContext";
+import PortfolioLoadingScreen from "@/components/PortfolioLoadingScreen";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import AboutSection from "@/components/AboutSection";
@@ -9,6 +11,12 @@ import ContactSection from "@/components/ContactSection";
 import FooterSection from "@/components/FooterSection";
 
 const Index = () => {
+  const { isLoading, skipLoading } = usePortfolio();
+
+  if (isLoading) {
+    return <PortfolioLoadingScreen onSkip={skipLoading} />;
+  }
+
   return (
     <div className="min-h-screen">
       <Navbar />

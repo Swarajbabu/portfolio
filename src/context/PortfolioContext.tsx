@@ -11,6 +11,7 @@ interface PortfolioContextType {
   exportJSON: () => void;
   isLoading: boolean;
   isMongoConnected: boolean;
+  skipLoading: () => void;
 }
 
 const STORAGE_KEY = "swaraj_portfolio_data_v1";
@@ -31,14 +32,26 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [isLoading, setIsLoading] = useState(true);
   const [isMongoConnected, setIsMongoConnected] = useState(false);
 
+  const skipLoading = () => {
+    setIsLoading(false);
+  };
+
   // Fetch portfolio data from MongoDB Atlas API on mount
   useEffect(() => {
+    let isMounted = true;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, 25000); // 25s safeguard timeout for cold start
+
     const fetchPortfolioFromMongo = async () => {
       try {
-        const response = await fetch(getApiUrl("/api/portfolio"));
+        const response = await fetch(getApiUrl("/api/portfolio"), {
+          signal: controller.signal,
+        });
         if (response.ok) {
           const mongoData = await response.json();
-          if (mongoData && mongoData.personal) {
+          if (mongoData && mongoData.personal && isMounted) {
             setData(mongoData);
             setIsMongoConnected(true);
             try {
@@ -48,15 +61,31 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             }
           }
         }
-      } catch (err) {
-        console.warn("Could not connect to MongoDB Atlas API server, using local data fallback:", err);
-        setIsMongoConnected(false);
+      } catch (err: unknown) {
+        const error = err as { name?: string };
+        if (error.name !== "AbortError") {
+          console.warn("Could not connect to MongoDB Atlas API server, using local data fallback:", err);
+        } else {
+          console.warn("MongoDB Atlas API request timed out after 25s, falling back to local data.");
+        }
+        if (isMounted) {
+          setIsMongoConnected(false);
+        }
       } finally {
-        setIsLoading(false);
+        clearTimeout(timeoutId);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     };
 
     fetchPortfolioFromMongo();
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   const updateData = async (newData: PortfolioData) => {
@@ -109,7 +138,7 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   return (
-    <PortfolioContext.Provider value={{ data, updateData, resetData, exportJSON, isLoading, isMongoConnected }}>
+    <PortfolioContext.Provider value={{ data, updateData, resetData, exportJSON, isLoading, isMongoConnected, skipLoading }}>
       {children}
     </PortfolioContext.Provider>
   );

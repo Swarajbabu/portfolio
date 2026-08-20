@@ -145,6 +145,11 @@ const Admin = () => {
   // Local editable copy of data
   const [formData, setFormData] = useState(data);
 
+  // Sync formData when data is loaded from MongoDB
+  useEffect(() => {
+    setFormData(data);
+  }, [data]);
+
 
   // Passkey Change / OTP State
   const [showPasskeyModal, setShowPasskeyModal] = useState(false);

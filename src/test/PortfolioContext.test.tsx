@@ -25,6 +25,21 @@ describe("PortfolioContext", () => {
     expect(result.current.data.personal.name).toBe("Swaraj Vecha");
     expect(typeof result.current.updateData).toBe("function");
     expect(typeof result.current.resetData).toBe("function");
+    expect(typeof result.current.skipLoading).toBe("function");
+  });
+
+  it("allows skipping loading state via skipLoading", async () => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <PortfolioProvider>{children}</PortfolioProvider>
+    );
+
+    const { result } = renderHook(() => usePortfolio(), { wrapper });
+
+    act(() => {
+      result.current.skipLoading();
+    });
+
+    expect(result.current.isLoading).toBe(false);
   });
 
   it("throws an error when usePortfolio is called outside of PortfolioProvider", () => {
