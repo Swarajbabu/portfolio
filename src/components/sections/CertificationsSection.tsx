@@ -4,6 +4,7 @@
  * ==============================================================================
  * Purpose:
  *   Showcase verified professional certifications and credentials using 3D FlipCards:
+ *   - Clear #01, #02, #03 position ranking badges
  *   - Front Side: Certification title, issuer org, period, bullet takeaways & verification button
  *   - Back Side: Full certificate preview image & direct credential verification URL
  *   - Pagination:
@@ -153,6 +154,7 @@ export const CertificationsSection = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 transition-all duration-300 min-h-[380px]">
           {visibleItems.map((item: CertificationItem, index: number) => {
             const globalIndex = (!isMobile) ? currentPage * ITEMS_PER_PAGE + index : index;
+            const certNum = `#0${globalIndex + 1}`;
 
             return (
               <RevealOnScroll key={item.role + globalIndex} animation="fade-up" delay={(index % 3) * 120} className="h-full">
@@ -165,9 +167,14 @@ export const CertificationsSection = () => {
                       style={{ transform: `rotate(${globalIndex % 2 === 0 ? 0.5 : -0.5}deg)` }}
                     >
                       <div className={`p-4 border-b-4 border-foreground ${globalIndex % 3 === 0 ? "bg-neo-accent" : globalIndex % 3 === 1 ? "bg-neo-secondary" : "bg-neo-muted"}`}>
-                        <div className="flex items-center gap-3">
-                          <Award strokeWidth={3} className="h-6 w-6" />
-                          <span className="font-black text-xs uppercase tracking-widest">{item.period}</span>
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2.5">
+                            <Award strokeWidth={3} className="h-6 w-6" />
+                            <span className="font-black text-xs uppercase tracking-widest">{item.period}</span>
+                          </div>
+                          <span className="bg-black text-white px-2 py-0.5 font-mono font-black text-xs border border-black shadow-[1px_1px_0px_0px_#000]">
+                            {certNum}
+                          </span>
                         </div>
                       </div>
                       <div className="p-6 flex-1 flex flex-col bg-card">
@@ -199,8 +206,18 @@ export const CertificationsSection = () => {
                       className="border-4 border-black bg-neo-cream shadow-[6px_6px_0px_0px_#000] h-full w-full p-3 flex flex-col overflow-hidden items-center justify-between"
                       style={{ transform: `rotate(${globalIndex % 2 === 0 ? -0.5 : 0.5}deg)` }}
                     >
+                      {/* Top Bar on Back Side */}
+                      <div className="w-full pb-2 flex items-center justify-between border-b-2 border-black/10">
+                        <span className="font-mono font-black text-xs bg-black text-white px-2 py-0.5">
+                          {certNum}
+                        </span>
+                        <span className="text-[11px] font-black uppercase text-black/70">
+                          {item.period}
+                        </span>
+                      </div>
+
                       {/* Certificate Preview Image */}
-                      <div className="relative w-full flex-1 border-2 border-black bg-black overflow-hidden flex items-center justify-center p-2">
+                      <div className="relative w-full flex-1 border-2 border-black bg-black overflow-hidden flex items-center justify-center p-2 my-2">
                         {item.image ? (
                           <img 
                             src={item.image} 
@@ -215,7 +232,7 @@ export const CertificationsSection = () => {
                       </div>
 
                       {/* Action Footer */}
-                      <div className="w-full pt-3 flex items-center justify-between gap-2">
+                      <div className="w-full pt-2 flex items-center justify-between gap-2">
                         {item.url ? (
                           <a
                             href={item.url}
@@ -249,18 +266,19 @@ export const CertificationsSection = () => {
             >
               {mobileViewAll ? (
                 <>
-                  <span>Show Less</span>
-                  <ChevronUp className="h-5 w-5 stroke-[3]" />
+                  <span>Show Fewer Certificates</span>
+                  <ChevronUp strokeWidth={3} className="h-5 w-5" />
                 </>
               ) : (
                 <>
-                  <span>View More Certificates ({items.length - 3} More)</span>
-                  <ChevronDown className="h-5 w-5 stroke-[3]" />
+                  <span>View All Certificates ({items.length})</span>
+                  <ChevronDown strokeWidth={3} className="h-5 w-5" />
                 </>
               )}
             </button>
           </div>
         )}
+
       </div>
     </section>
   );
