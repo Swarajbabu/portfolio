@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Neo-Brutalist Drop Shadow -->
+  <rect x="14" y="14" width="104" height="104" rx="16" fill="#000000" />
+  
+  <!-- Main Background Container -->
+  <rect x="8" y="8" width="104" height="104" rx="16" fill="#FFD93D" stroke="#000000" stroke-width="8" />
+  
+  <!-- Top Accent Dot -->
+  <circle cx="96" cy="24" r="7" fill="#FF6B6B" stroke="#000000" stroke-width="3" />
+  
+  <!-- Monogram SV -->
+  <g fill="#000000" font-family="'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900">
+    <text x="60" y="78" font-size="52" text-anchor="middle" letter-spacing="-3">SV</text>
+  </g>
+  
+  <!-- Terminal Prompt Line Underneath -->
+  <rect x="28" y="90" width="56" height="6" rx="3" fill="#000000" />
+</svg>
