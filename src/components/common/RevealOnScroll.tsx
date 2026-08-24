@@ -1,9 +1,27 @@
+/**
+ * ==============================================================================
+ * COMMON COMPONENT: RevealOnScroll
+ * ==============================================================================
+ * Purpose:
+ *   Wraps any content in an IntersectionObserver container to trigger
+ *   smooth entrance animations when scrolled into viewport:
+ *   - fade-up, fade-down, fade-left, fade-right, zoom-in, pop-in, fade
+ * ==============================================================================
+ */
+
 import React from "react";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
 
-export type ScrollAnimationType = "fade-up" | "fade-down" | "fade-left" | "fade-right" | "zoom-in" | "pop-in" | "fade";
+export type ScrollAnimationType = 
+  | "fade-up" 
+  | "fade-down" 
+  | "fade-left" 
+  | "fade-right" 
+  | "zoom-in" 
+  | "pop-in" 
+  | "fade";
 
-interface RevealOnScrollProps {
+export interface RevealOnScrollProps {
   children: React.ReactNode;
   animation?: ScrollAnimationType;
   delay?: number; // Milliseconds delay

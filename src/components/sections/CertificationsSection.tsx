@@ -1,19 +1,56 @@
+/**
+ * ==============================================================================
+ * SECTION: CertificationsSection
+ * ==============================================================================
+ * Purpose:
+ *   Showcase verified professional certifications and credentials using 3D FlipCards:
+ *   - Front Side: Certification title, issuer org, period, bullet takeaways & verification button
+ *   - Back Side: Full certificate preview image & direct credential verification URL
+ *   - Pagination:
+ *       • Desktop/Tablet: 3 cards per page with [< Prev] Page X of Y [Next >] controls
+ *       • Mobile: First 3 cards with expandable [View More Certificates] toggle
+ *
+ * Data Source:
+ *   - `usePortfolio().data.experience` (experience.items contains certifications)
+ * ==============================================================================
+ */
+
 import { useState, useMemo, useEffect } from "react";
 import { usePortfolio } from "@/context/PortfolioContext";
 import { Award, ExternalLink, Star, Zap, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from "lucide-react";
-import FlipCard from "./FlipCard";
-import RevealOnScroll from "@/components/RevealOnScroll";
+import FlipCard from "@/components/common/FlipCard";
+import RevealOnScroll from "@/components/common/RevealOnScroll";
 
-const CertificationsSection = () => {
+/* -------------------------------------------------------------------------- */
+/* 1. TYPES & CONSTANTS                                                       */
+/* -------------------------------------------------------------------------- */
+
+export interface CertificationItem {
+  role: string;
+  org: string;
+  period: string;
+  bullets?: string[];
+  url?: string;
+  image?: string;
+}
+
+const ITEMS_PER_PAGE = 3;
+
+/* -------------------------------------------------------------------------- */
+/* 2. COMPONENT                                                               */
+/* -------------------------------------------------------------------------- */
+
+export const CertificationsSection = () => {
+  /* 2.1 DATA & STATE ------------------------------------------------------- */
   const { data } = usePortfolio();
   const { experience } = data;
-  const items = experience.items;
-  const itemsPerPage = 3;
-  const totalPages = Math.ceil(items.length / itemsPerPage);
+  const items: CertificationItem[] = experience.items || [];
+  const totalPages = Math.ceil(items.length / ITEMS_PER_PAGE);
 
-  const [currentPage, setCurrentPage] = useState(0);
-  const [mobileViewAll, setMobileViewAll] = useState(false);
+  const [currentPage, setCurrentPage] = useState<number>(0);
+  const [mobileViewAll, setMobileViewAll] = useState<boolean>(false);
 
+  /* 2.2 RESPONSIVE SCREEN DETECTION ---------------------------------------- */
   const [isMobile, setIsMobile] = useState<boolean>(() => {
     if (typeof window !== "undefined") {
       return window.innerWidth < 768;
@@ -27,6 +64,7 @@ const CertificationsSection = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  /* 2.3 EVENT HANDLERS ------------------------------------------------------ */
   const handlePrev = () => {
     setCurrentPage((prev) => (prev <= 0 ? totalPages - 1 : prev - 1));
   };
@@ -35,21 +73,27 @@ const CertificationsSection = () => {
     setCurrentPage((prev) => (prev >= totalPages - 1 ? 0 : prev + 1));
   };
 
+  /* 2.4 VISIBLE ITEMS COMPUTATION ------------------------------------------ */
   const visibleItems = useMemo(() => {
     if (isMobile) {
       if (mobileViewAll) return items;
       return items.slice(0, 3);
     } else {
       return items.slice(
-        currentPage * itemsPerPage,
-        currentPage * itemsPerPage + itemsPerPage
+        currentPage * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE + ITEMS_PER_PAGE
       );
     }
   }, [isMobile, mobileViewAll, currentPage, items]);
 
+  /* 2.5 RENDER ------------------------------------------------------------- */
   return (
-    <section id="certifications" className="py-20 sm:py-28 bg-neo-cream grid-bg relative overflow-hidden text-black">
-      {/* Decorative elements with active animations */}
+    <section 
+      id="certifications" 
+      className="py-20 sm:py-28 bg-neo-cream grid-bg relative overflow-hidden text-black"
+      aria-label="Certifications Section"
+    >
+      {/* 2.5.1 BACKGROUND DECORATIVE ELEMENTS */}
       <div className="absolute top-14 left-6 animate-float-x hidden sm:block pointer-events-none">
         <Star className="h-10 w-10 text-black fill-neo-secondary shadow-[2px_2px_0px_0px_#000]" strokeWidth={2.5} />
       </div>
@@ -63,15 +107,17 @@ const CertificationsSection = () => {
         <div className="border-4 border-black bg-neo-muted w-9 h-9 -rotate-12 shadow-[3px_3px_0px_0px_#000]" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-8">
-        {/* Header */}
+      {/* 2.5.2 MAIN CONTENT */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 relative z-10">
+        
+        {/* --- HEADER & DESKTOP CONTROLS --- */}
         <RevealOnScroll animation="fade-down">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-12 gap-4">
             <span className="inline-block neo-border bg-neo-muted px-4 py-2 font-black text-sm uppercase tracking-widest neo-shadow-sm -rotate-1">
               {experience.title} ({items.length})
             </span>
 
-            {/* MEDIUM, LARGE & LAPTOP CONTROLS: [< PREV] PAGE X OF Y [NEXT >] */}
+            {/* Desktop Controls: [< PREV] PAGE X OF Y [NEXT >] */}
             {totalPages > 1 && (
               <div className="hidden md:flex items-center gap-3">
                 <button
@@ -96,22 +142,23 @@ const CertificationsSection = () => {
               </div>
             )}
 
-            {/* ONLY ON MOBILE / SMALL SCREENS: Simple Badge */}
+            {/* Mobile Counter */}
             <div className="md:hidden border-2 border-black bg-white px-3.5 py-1.5 font-black text-xs uppercase tracking-wider shadow-[3px_3px_0px_0px_#000]">
               Showing {visibleItems.length} of {items.length}
             </div>
           </div>
         </RevealOnScroll>
 
-        {/* Visible Cards Grid */}
+        {/* --- 3D FLIPCARDS GRID --- */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 transition-all duration-300 min-h-[380px]">
-          {visibleItems.map((item, index) => {
-            const globalIndex = (!isMobile) ? currentPage * itemsPerPage + index : index;
+          {visibleItems.map((item: CertificationItem, index: number) => {
+            const globalIndex = (!isMobile) ? currentPage * ITEMS_PER_PAGE + index : index;
 
             return (
               <RevealOnScroll key={item.role + globalIndex} animation="fade-up" delay={(index % 3) * 120} className="h-full">
                 <FlipCard
                   className="h-full"
+                  /* --- FRONT SIDE --- */
                   front={
                     <div
                       className="neo-border bg-card neo-shadow-md flex flex-col h-full overflow-hidden"
@@ -127,7 +174,7 @@ const CertificationsSection = () => {
                         <h3 className="font-black text-lg uppercase tracking-tight mb-1">{item.role}</h3>
                         <p className="font-bold text-sm mb-4">{item.org}</p>
                         <ul className="space-y-2 flex-1">
-                          {item.bullets?.map((b, j) => (
+                          {item.bullets?.map((b: string, j: number) => (
                             <li key={j} className="font-medium text-sm">• {b}</li>
                           ))}
                         </ul>
@@ -146,6 +193,7 @@ const CertificationsSection = () => {
                       </div>
                     </div>
                   }
+                  /* --- BACK SIDE --- */
                   back={
                     <div 
                       className="border-4 border-black bg-neo-cream shadow-[6px_6px_0px_0px_#000] h-full w-full p-3 flex flex-col overflow-hidden items-center justify-between"
@@ -153,14 +201,20 @@ const CertificationsSection = () => {
                     >
                       {/* Certificate Preview Image */}
                       <div className="relative w-full flex-1 border-2 border-black bg-black overflow-hidden flex items-center justify-center p-2">
-                        <img 
-                          src={item.image} 
-                          alt={item.role}
-                          className="w-full h-full object-contain"
-                        />
+                        {item.image ? (
+                          <img 
+                            src={item.image} 
+                            alt={item.role}
+                            className="w-full h-full object-contain"
+                          />
+                        ) : (
+                          <div className="text-white text-center font-bold text-xs uppercase">
+                            No Preview Available
+                          </div>
+                        )}
                       </div>
 
-                      {/* Single Clean Action Footer */}
+                      {/* Action Footer */}
                       <div className="w-full pt-3 flex items-center justify-between gap-2">
                         {item.url ? (
                           <a
@@ -186,7 +240,7 @@ const CertificationsSection = () => {
           })}
         </div>
 
-        {/* ONLY ON MOBILE / SMALL SCREENS: VIEW MORE / SHOW LESS BUTTON */}
+        {/* --- MOBILE SHOW MORE / LESS --- */}
         {items.length > 3 && (
           <div className="md:hidden mt-8 flex justify-center">
             <button

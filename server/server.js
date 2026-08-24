@@ -1,12 +1,23 @@
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
+import helmet from "helmet";
+import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
-
 import nodemailer from "nodemailer";
+
+import {
+  isBcryptHash,
+  hashPasscode,
+  verifyPasscode,
+  sanitizeNoSql,
+  sanitizeString,
+  isOriginAllowed,
+} from "./security.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -16,16 +27,37 @@ dotenv.config({ path: path.join(__dirname, ".env") });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://syamalaswaraj_db_user:swaraj2005@task.h1u2xxb.mongodb.net/portfolio?retryWrites=true&w=majority&appName=TASK";
+const MONGODB_URI = process.env.MONGODB_URI;
 const isProduction = process.env.NODE_ENV === "production";
-
-// Default admin passkey fallback if not set in environment or MongoDB
-const DEFAULT_FALLBACK_PASSCODE = process.env.ADMIN_PASSCODE || "swaraj2026";
 const ADMIN_NOTIFICATION_EMAIL = "swarajvecha@gmail.com";
 
-// In-Memory Passcode Cache for fast access
+// ============================================================
+// SECURITY: PASSWORD HASHING & PASSCODE MANAGEMENT
+// ============================================================
+
+// In-Memory Passcode Cache for fast access (TTL: 30s)
 let cachedAdminPasscode = null;
 let lastPasscodeCheck = 0;
+
+// Auto-migrates legacy plaintext passcode in MongoDB Atlas to bcrypt hash
+const migratePasscodeToHash = async (plainPasscode) => {
+  try {
+    if (mongoose.connection.readyState === 1) {
+      const hashed = await hashPasscode(plainPasscode);
+      const col = mongoose.connection.db.collection("admin_settings");
+      await col.updateOne(
+        { key: "admin_auth" },
+        { $set: { passcode: hashed, updatedAt: new Date(), migratedAt: new Date() } },
+        { upsert: true }
+      );
+      cachedAdminPasscode = hashed;
+      lastPasscodeCheck = Date.now();
+      console.log(`🛡️ [SECURITY] Admin passcode automatically upgraded from plaintext to bcrypt hash.`);
+    }
+  } catch (err) {
+    console.error("Passcode auto-migration error:", err.message);
+  }
+};
 
 // Dynamic Admin Passkey Resolver (from MongoDB Atlas or .env fallback)
 const getAdminPasscode = async () => {
@@ -46,15 +78,140 @@ const getAdminPasscode = async () => {
   } catch (err) {
     console.error("Error reading dynamic passkey from MongoDB:", err.message);
   }
-  cachedAdminPasscode = process.env.ADMIN_PASSCODE || DEFAULT_FALLBACK_PASSCODE;
+
+  cachedAdminPasscode = process.env.ADMIN_PASSCODE || null;
   lastPasscodeCheck = now;
   return cachedAdminPasscode;
 };
 
-// In-memory OTP Security Store
+// ============================================================
+// SECURITY: HTTP HEADERS (HELMET) & CORS WHITELISTING
+// ============================================================
+
+// Standard Security Headers with custom Content Security Policy (CSP)
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "'unsafe-eval'",
+          "https://us.i.posthog.com",
+          "https://us-assets.i.posthog.com",
+        ],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
+        imgSrc: [
+          "'self'",
+          "data:",
+          "blob:",
+          "https://res.cloudinary.com",
+          "https://*.cloudinary.com",
+          "https://img.shields.io",
+          "https://*.posthog.com",
+          "https://*.githubusercontent.com",
+        ],
+        connectSrc: [
+          "'self'",
+          "https://*.mongodb.net",
+          "https://api.cloudinary.com",
+          "https://res.cloudinary.com",
+          "https://ip-api.com",
+          "https://us.i.posthog.com",
+          "https://formspree.io",
+          "https://*.onrender.com",
+          "http://localhost:*",
+          "http://127.0.0.1:*",
+        ],
+        frameSrc: ["'none'"],
+        objectSrc: ["'none'"],
+      },
+    },
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    hsts: isProduction ? { maxAge: 31536000, includeSubDomains: true, preload: true } : false,
+    frameguard: { action: "sameorigin" },
+    noSniff: true,
+  })
+);
+
+// Configurable CORS Origin Validator
+const customAllowedOrigins = (process.env.ALLOWED_ORIGINS || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (isOriginAllowed(origin, customAllowedOrigins)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS blocked for origin: ${origin}`));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "x-admin-passcode", "Authorization", "Accept"],
+  })
+);
+app.options("*", cors());
+
+app.use(express.json({ limit: "15mb" }));
+app.use(express.urlencoded({ limit: "15mb", extended: true }));
+
+// ============================================================
+// RATE LIMITING & AUTHENTICATION MIDDLEWARE
+// ============================================================
+
+// In-Memory Sliding-Window Rate Limiter
+const rateLimitBuckets = new Map();
+const rateLimit = (max, windowMs) => (req, res, next) => {
+  const key = req.ip || req.headers["x-forwarded-for"] || "unknown";
+  const now = Date.now();
+  const bucket = rateLimitBuckets.get(key)?.filter((t) => now - t < windowMs) || [];
+  if (bucket.length >= max) {
+    return res.status(429).json({ error: "Too many requests. Please slow down." });
+  }
+  bucket.push(now);
+  rateLimitBuckets.set(key, bucket);
+  next();
+};
+
+// Admin Authorization Middleware (supports hashed & plaintext with dynamic verification)
+const requireAdmin = async (req, res, next) => {
+  try {
+    const supplied = req.headers["x-admin-passcode"];
+    if (!supplied || typeof supplied !== "string") {
+      return res.status(401).json({ error: "Unauthorized: Invalid or missing admin passcode" });
+    }
+    const activePasscode = await getAdminPasscode();
+    if (!activePasscode) {
+      return res.status(401).json({ error: "Unauthorized: Admin passcode not configured" });
+    }
+    const isValid = await verifyPasscode(supplied, activePasscode);
+    if (!isValid) {
+      return res.status(401).json({ error: "Unauthorized: Invalid admin passcode" });
+    }
+    next();
+  } catch (error) {
+    sendServerError(res, "Admin authorization failed", error);
+  }
+};
+
+// Sends a generic message to the client but logs full detail server-side only
+const sendServerError = (res, publicMessage, error) => {
+  console.error(publicMessage, error);
+  res.status(500).json({ error: publicMessage, ...(isProduction ? {} : { details: error?.message }) });
+};
+
+// ============================================================
+// EMAIL OTP SECURITY STORE & TRANSPORTER
+// ============================================================
+
 let activeOtpSession = null; // { otp: string, expiresAt: number, attempts: number }
 
-// Email Transporter for OTP dispatch
 const createMailTransporter = () => {
   if (process.env.EMAIL_USER && process.env.EMAIL_PASS && process.env.EMAIL_PASS.trim().length > 0) {
     return nodemailer.createTransport({
@@ -68,7 +225,6 @@ const createMailTransporter = () => {
   return null;
 };
 
-// Send OTP to swarajvecha@gmail.com
 const sendOtpEmail = async (otp) => {
   console.log(`\n======================================================`);
   console.log(`🔐 [ADMIN SECURITY OTP]`);
@@ -126,70 +282,34 @@ const sendOtpEmail = async (otp) => {
   }
 };
 
-// Robust CORS configuration for Vercel Frontend + Render Backend
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow any origin (Vercel domains, preview deployments, custom domains, and localhost)
-    callback(null, true);
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "x-admin-passcode", "Authorization", "Accept"],
-}));
-app.options("*", cors());
+// ============================================================
+// PORTFOLIO CRUD & IN-MEMORY CACHE
+// ============================================================
 
-app.use(express.json({ limit: "15mb" }));
-app.use(express.urlencoded({ limit: "15mb", extended: true }));
-
-// Very small, dependency-free rate limiter for write endpoints (per-IP sliding window)
-const rateLimitBuckets = new Map();
-const rateLimit = (max, windowMs) => (req, res, next) => {
-  const key = req.ip || req.headers["x-forwarded-for"] || "unknown";
-  const now = Date.now();
-  const bucket = rateLimitBuckets.get(key)?.filter((t) => now - t < windowMs) || [];
-  if (bucket.length >= max) {
-    return res.status(429).json({ error: "Too many requests. Please slow down." });
-  }
-  bucket.push(now);
-  rateLimitBuckets.set(key, bucket);
-  next();
-};
-
-// Middleware: Requires the active dynamic admin passcode on every mutating/admin-only request
-const requireAdmin = async (req, res, next) => {
-  const activePasscode = await getAdminPasscode();
-  const supplied = req.headers["x-admin-passcode"];
-  if (!supplied || supplied !== activePasscode) {
-    return res.status(401).json({ error: "Unauthorized: Invalid or missing admin passcode" });
-  }
-  next();
-};
-
-// Sends a generic message to the client but logs full detail server-side only.
-// Prevents leaking internal error messages/stack traces (e.g. DB internals) to anonymous callers.
-const sendServerError = (res, publicMessage, error) => {
-  console.error(publicMessage, error);
-  res.status(500).json({ error: publicMessage, ...(isProduction ? {} : { details: error.message }) });
-};
-
-// In-Memory Latency Cache System (0ms response speed)
 let memoryCache = {
   data: null,
   lastFetched: 0,
-  ttl: 60 * 1000 // 60 seconds TTL
+  ttl: 60 * 1000, // 60 seconds TTL
 };
 
 const getCollection = () => mongoose.connection.db.collection("portfolios");
 
-// GET /api/portfolio - High Performance Fetching with 0ms Cache + MongoDB Atlas Sync
+// GET /api/portfolio - High Performance Fetching with RAM Cache + MongoDB Atlas Sync
 app.get("/api/portfolio", async (req, res) => {
   try {
     const now = Date.now();
-    // Return instant 0ms cached response if valid
-    if (memoryCache.data && (now - memoryCache.lastFetched < memoryCache.ttl)) {
+    if (memoryCache.data && now - memoryCache.lastFetched < memoryCache.ttl) {
       res.setHeader("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
       res.setHeader("X-Data-Source", "RAM-Cache-0ms");
       return res.json(memoryCache.data);
+    }
+
+    if (mongoose.connection.readyState !== 1) {
+      if (memoryCache.data) {
+        res.setHeader("X-Data-Source", "Stale-RAM-Cache");
+        return res.json(memoryCache.data);
+      }
+      return res.status(503).json({ error: "Database temporarily unavailable" });
     }
 
     const col = getCollection();
@@ -203,7 +323,6 @@ app.get("/api/portfolio", async (req, res) => {
     delete doc.createdAt;
     delete doc.updatedAt;
 
-    // Update RAM Cache
     memoryCache.data = doc;
     memoryCache.lastFetched = now;
 
@@ -212,7 +331,6 @@ app.get("/api/portfolio", async (req, res) => {
     res.json(doc);
   } catch (error) {
     console.error("Error fetching portfolio from MongoDB:", error);
-    // If Mongo is temporarily slow/reconnecting, serve stale RAM cache if available
     if (memoryCache.data) {
       res.setHeader("X-Data-Source", "Stale-RAM-Cache");
       return res.json(memoryCache.data);
@@ -221,33 +339,50 @@ app.get("/api/portfolio", async (req, res) => {
   }
 });
 
-// PUT /api/portfolio - Update MongoDB Atlas & Invalidate RAM Cache instantly
+// PUT /api/portfolio - Sanitize, Validate, Update MongoDB Atlas & Invalidate RAM Cache
 app.put("/api/portfolio", requireAdmin, async (req, res) => {
   try {
-    const col = getCollection();
-    const updatedData = req.body;
-    if (!updatedData || typeof updatedData !== "object" || Array.isArray(updatedData)) {
-      return res.status(400).json({ error: "Request body must be a portfolio data object" });
+    const rawData = req.body;
+    if (!rawData || typeof rawData !== "object" || Array.isArray(rawData)) {
+      return res.status(400).json({ error: "Request body must be a valid portfolio data object" });
     }
 
-    // 1. Direct MongoDB Atlas Update
+    // 1. Sanitize against NoSQL injection / operator keys
+    const sanitized = sanitizeNoSql(rawData);
+
+    // 2. Validate essential sections if provided
+    const validSections = ["personal", "hero", "about", "skills", "projects", "education", "experience", "certifications", "contact"];
+    for (const section of Object.keys(sanitized)) {
+      if (!validSections.includes(section) && section !== "updatedAt") {
+        // Unknown custom section - ensure it is safe object or value
+        if (typeof sanitized[section] === "function") {
+          delete sanitized[section];
+        }
+      }
+    }
+
+    const col = getCollection();
     await col.updateOne(
       { key: "main_portfolio" },
-      { $set: { ...updatedData, updatedAt: new Date() } },
+      { $set: { ...sanitized, updatedAt: new Date() } },
       { upsert: true }
     );
 
-    // 2. Instant RAM Cache Update (0ms delay for subsequent reads)
-    memoryCache.data = updatedData;
+    // Update RAM Cache
+    memoryCache.data = sanitized;
     memoryCache.lastFetched = Date.now();
 
-    res.json({ message: "Portfolio updated in MongoDB Atlas and RAM Cache refreshed", data: updatedData });
+    res.json({ message: "Portfolio updated in MongoDB Atlas and RAM Cache refreshed", data: sanitized });
   } catch (error) {
     sendServerError(res, "Failed to update portfolio data", error);
   }
 });
 
-// POST /api/upload - Upload base64 image directly to Cloudinary or return hosted URL
+// ============================================================
+// FILE & MEDIA UPLOADS
+// ============================================================
+
+// POST /api/upload - Upload base64 image to Cloudinary or store directly
 app.post("/api/upload", requireAdmin, rateLimit(20, 60 * 1000), async (req, res) => {
   try {
     const { image } = req.body;
@@ -261,7 +396,6 @@ app.post("/api/upload", requireAdmin, rateLimit(20, 60 * 1000), async (req, res)
       return res.status(413).json({ error: "Image is too large (max ~5MB)" });
     }
 
-    // If Cloudinary keys are configured, upload to Cloudinary
     if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
       const { v2: cloudinary } = await import("cloudinary");
       cloudinary.config({
@@ -282,12 +416,11 @@ app.post("/api/upload", requireAdmin, rateLimit(20, 60 * 1000), async (req, res)
         source: "Cloudinary",
       });
     } else {
-      // If Cloudinary keys not yet set in .env, return base64 / direct image data
       return res.json({
         success: true,
         url: image,
         source: "Direct",
-        message: "Cloudinary keys not set in .env. Stored directly."
+        message: "Cloudinary keys not configured. Stored directly.",
       });
     }
   } catch (error) {
@@ -295,7 +428,7 @@ app.post("/api/upload", requireAdmin, rateLimit(20, 60 * 1000), async (req, res)
   }
 });
 
-// POST /api/upload-cv - Upload base64 PDF (CV/Resume) to Cloudinary or store directly
+// POST /api/upload-cv - Upload base64 PDF to Cloudinary
 app.post("/api/upload-cv", requireAdmin, rateLimit(10, 60 * 1000), async (req, res) => {
   try {
     const { file } = req.body;
@@ -336,7 +469,7 @@ app.post("/api/upload-cv", requireAdmin, rateLimit(10, 60 * 1000), async (req, r
         success: true,
         url: file,
         source: "Direct",
-        message: "Cloudinary keys not set. CV stored as base64."
+        message: "Cloudinary keys not configured. CV stored directly.",
       });
     }
   } catch (error) {
@@ -344,29 +477,45 @@ app.post("/api/upload-cv", requireAdmin, rateLimit(10, 60 * 1000), async (req, r
   }
 });
 
-// POST /api/contact - Store Contact Form Messages in MongoDB Atlas
+// ============================================================
+// CONTACT FORM & MESSAGES
+// ============================================================
+
+// POST /api/contact - Sanitize & Store Contact Form Messages in MongoDB Atlas
 app.post("/api/contact", rateLimit(5, 10 * 60 * 1000), async (req, res) => {
   try {
     const { name, email, message } = req.body;
-    if (typeof name !== "string" || typeof email !== "string" || typeof message !== "string" ||
-        !name.trim() || !message.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return res.status(400).json({ error: "A valid name, email, and message are required." });
+    if (
+      typeof name !== "string" ||
+      typeof email !== "string" ||
+      typeof message !== "string" ||
+      !name.trim() ||
+      !message.trim() ||
+      !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim())
+    ) {
+      return res.status(400).json({ error: "A valid name, email address, and message are required." });
     }
+
     if (name.length > 200 || email.length > 200 || message.length > 5000) {
-      return res.status(400).json({ error: "Submission is too long." });
+      return res.status(400).json({ error: "Submission exceeds allowed character length." });
     }
+
+    // XSS Sanitization
+    const sanitizedName = sanitizeString(name, 200);
+    const sanitizedEmail = sanitizeString(email, 200);
+    const sanitizedMessage = sanitizeString(message, 5000);
 
     const messagesCol = mongoose.connection.db.collection("contact_messages");
     await messagesCol.insertOne({
-      name,
-      email,
-      message,
+      name: sanitizedName,
+      email: sanitizedEmail,
+      message: sanitizedMessage,
       createdAt: new Date(),
-      ip: req.ip || req.headers["x-forwarded-for"] || "unknown",
-      userAgent: req.headers["user-agent"] || "unknown"
+      ip: (req.ip || req.headers["x-forwarded-for"] || "unknown").replace(/::ffff:/g, ""),
+      userAgent: (req.headers["user-agent"] || "unknown").substring(0, 500),
     });
 
-    console.log(`📩 New Contact Message received from ${name} (${email})`);
+    console.log(`📩 New Contact Message received from ${sanitizedName} (${sanitizedEmail})`);
     res.json({ success: true, message: "Your message has been received and saved!" });
   } catch (error) {
     sendServerError(res, "Failed to save message", error);
@@ -384,15 +533,17 @@ app.get("/api/contact/messages", requireAdmin, async (req, res) => {
   }
 });
 
-// Brute-force login protection: 3 failed attempts → 15 minute lockout per IP
-const loginAttempts = new Map(); // ip → { count, lockedUntil }
+// ============================================================
+// ADMIN AUTHENTICATION & BRUTE-FORCE LOCKOUT
+// ============================================================
+
+const loginAttempts = new Map(); // ip -> { count, lockedUntil }
 const MAX_LOGIN_ATTEMPTS = 3;
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
 const getLoginAttemptInfo = (ip) => {
   const entry = loginAttempts.get(ip);
   if (!entry) return { count: 0, lockedUntil: 0 };
-  // If lockout has expired, clear it
   if (entry.lockedUntil && Date.now() > entry.lockedUntil) {
     loginAttempts.delete(ip);
     return { count: 0, lockedUntil: 0 };
@@ -400,13 +551,12 @@ const getLoginAttemptInfo = (ip) => {
   return entry;
 };
 
-// POST /api/admin/verify - Lets the Admin UI check a passcode server-side before unlocking
+// POST /api/admin/verify - Secure passcode verification with bcrypt support & IP lockout
 app.post("/api/admin/verify", rateLimit(10, 60 * 1000), async (req, res) => {
   try {
     const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.ip || "unknown";
     const attempt = getLoginAttemptInfo(ip);
 
-    // Check if IP is currently locked out
     if (attempt.lockedUntil && Date.now() < attempt.lockedUntil) {
       const remainingMs = attempt.lockedUntil - Date.now();
       const remainingMin = Math.ceil(remainingMs / 60000);
@@ -415,25 +565,27 @@ app.post("/api/admin/verify", rateLimit(10, 60 * 1000), async (req, res) => {
         error: `Too many failed attempts. Try again in ${remainingMin} minute${remainingMin > 1 ? "s" : ""}.`,
         locked: true,
         lockedUntil: attempt.lockedUntil,
-        remainingMs
+        remainingMs,
       });
     }
 
     const { passcode } = req.body;
-    const activePasscode = await getAdminPasscode();
+    if (!passcode || typeof passcode !== "string") {
+      return res.status(400).json({ success: false, error: "Passcode string is required" });
+    }
 
-    if (passcode && passcode === activePasscode) {
-      // Success — clear failed attempts for this IP
+    const activePasscode = await getAdminPasscode();
+    const isValid = activePasscode ? await verifyPasscode(passcode, activePasscode) : false;
+
+    if (isValid) {
       loginAttempts.delete(ip);
       return res.json({ success: true, message: "Authentication successful" });
     }
 
-    // Failed attempt — increment counter
     const newCount = (attempt.count || 0) + 1;
     const remainingAttempts = MAX_LOGIN_ATTEMPTS - newCount;
 
     if (newCount >= MAX_LOGIN_ATTEMPTS) {
-      // Lock the IP for 15 minutes
       const lockedUntil = Date.now() + LOCKOUT_DURATION_MS;
       loginAttempts.set(ip, { count: newCount, lockedUntil });
       console.warn(`🔒 Admin login locked for IP ${ip} until ${new Date(lockedUntil).toLocaleTimeString()}`);
@@ -442,27 +594,25 @@ app.post("/api/admin/verify", rateLimit(10, 60 * 1000), async (req, res) => {
         error: "Too many failed attempts. You are locked out for 15 minutes.",
         locked: true,
         lockedUntil,
-        remainingMs: LOCKOUT_DURATION_MS
+        remainingMs: LOCKOUT_DURATION_MS,
       });
     }
 
-    // Not locked yet, but track the failure
     loginAttempts.set(ip, { count: newCount, lockedUntil: 0 });
     res.status(401).json({
       success: false,
       error: `Invalid passcode. ${remainingAttempts} attempt${remainingAttempts > 1 ? "s" : ""} remaining before lockout.`,
       locked: false,
-      remainingAttempts
+      remainingAttempts,
     });
   } catch (error) {
     sendServerError(res, "Authentication check failed", error);
   }
 });
 
-// POST /api/admin/request-otp - Send 6-digit OTP to swarajvecha@gmail.com for identity verification
+// POST /api/admin/request-otp - Send 6-digit OTP for identity verification
 app.post("/api/admin/request-otp", rateLimit(5, 10 * 60 * 1000), async (req, res) => {
   try {
-    // Generate secure 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     activeOtpSession = {
       otp,
@@ -478,7 +628,6 @@ app.post("/api/admin/request-otp", rateLimit(5, 10 * 60 * 1000), async (req, res
         ? `Security OTP sent to ${ADMIN_NOTIFICATION_EMAIL}. Please check your inbox / spam folder.`
         : `Security OTP generated for ${ADMIN_NOTIFICATION_EMAIL}! Check your email or server console.`,
       email: ADMIN_NOTIFICATION_EMAIL,
-      // For immediate dev convenience if SMTP credentials aren't yet added to .env:
       ...(process.env.EMAIL_USER && process.env.EMAIL_PASS ? {} : { devOtp: otp, note: "OTP logged to server terminal" }),
     });
   } catch (error) {
@@ -486,7 +635,7 @@ app.post("/api/admin/request-otp", rateLimit(5, 10 * 60 * 1000), async (req, res
   }
 });
 
-// POST /api/admin/change-passcode - Verify OTP and update master admin passkey in MongoDB Atlas
+// POST /api/admin/change-passcode - Verify OTP and update master admin passkey as bcrypt hash in MongoDB Atlas
 app.post("/api/admin/change-passcode", rateLimit(5, 10 * 60 * 1000), async (req, res) => {
   try {
     const { otp, newPasscode } = req.body;
@@ -510,27 +659,33 @@ app.post("/api/admin/change-passcode", rateLimit(5, 10 * 60 * 1000), async (req,
     }
 
     const cleanedPasscode = newPasscode.trim();
+    if (cleanedPasscode.length > 128) {
+      return res.status(400).json({ error: "Passkey is too long (max 128 characters)." });
+    }
 
-    // 1. Save new passkey in MongoDB Atlas
+    // 1. Hash the new passcode with bcrypt
+    const hashedPasscode = await hashPasscode(cleanedPasscode);
+
+    // 2. Save hashed passcode in MongoDB Atlas
     const col = mongoose.connection.db.collection("admin_settings");
     await col.updateOne(
       { key: "admin_auth" },
-      { $set: { passcode: cleanedPasscode, updatedAt: new Date(), updatedBy: ADMIN_NOTIFICATION_EMAIL } },
+      { $set: { passcode: hashedPasscode, updatedAt: new Date(), updatedBy: ADMIN_NOTIFICATION_EMAIL } },
       { upsert: true }
     );
 
-    // 2. Update RAM cache immediately
-    cachedAdminPasscode = cleanedPasscode;
+    // 3. Update RAM cache immediately
+    cachedAdminPasscode = hashedPasscode;
     lastPasscodeCheck = Date.now();
 
-    // 3. Invalidate OTP session
+    // 4. Invalidate OTP session
     activeOtpSession = null;
 
-    console.log(`\n🎉 [ADMIN SECURITY SUCCESS] Admin passkey successfully changed to "${cleanedPasscode}" at ${new Date().toISOString()}\n`);
+    console.log(`\n🎉 [ADMIN SECURITY SUCCESS] Admin passkey successfully updated to secure bcrypt hash at ${new Date().toISOString()}\n`);
 
     res.json({
       success: true,
-      message: "Admin passkey changed successfully! You can now log in with your new passkey.",
+      message: "Admin passkey changed and securely hashed! You can now log in with your new passkey.",
     });
   } catch (error) {
     sendServerError(res, "Failed to update admin passkey", error);
@@ -543,7 +698,6 @@ app.post("/api/admin/change-passcode", rateLimit(5, 10 * 60 * 1000), async (req,
 
 const getVisitorCollection = () => mongoose.connection.db.collection("visitor_logs");
 
-// Simple user-agent parser (no dependency needed)
 const parseUserAgent = (ua) => {
   if (!ua) return { device: "Unknown", browser: "Unknown" };
   const device = /Mobile|Android|iPhone|iPad/i.test(ua) ? "Mobile" : /Tablet/i.test(ua) ? "Tablet" : "Desktop";
@@ -556,7 +710,7 @@ const parseUserAgent = (ua) => {
   return { device, browser };
 };
 
-// POST /api/track-visit - Log a visitor with IP-based geolocation (public, rate-limited)
+// POST /api/track-visit - Log a visitor with IP-based geolocation
 app.post("/api/track-visit", rateLimit(10, 60 * 1000), async (req, res) => {
   try {
     if (mongoose.connection.readyState !== 1) {
@@ -566,15 +720,15 @@ app.post("/api/track-visit", rateLimit(10, 60 * 1000), async (req, res) => {
     const ip = req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.ip || "unknown";
     const ua = req.headers["user-agent"] || "unknown";
     const { device, browser } = parseUserAgent(ua);
-    const referrer = req.headers["referer"] || req.headers["referrer"] || "";
-    const page = req.body?.page || "/";
+    const referrer = sanitizeString(req.headers["referer"] || req.headers["referrer"] || "", 500);
+    const page = sanitizeString(req.body?.page || "/", 200);
 
-    // IP Geolocation via free ip-api.com (no key needed, 45 req/min)
     let geo = { city: "Unknown", region: "", country: "Unknown", timezone: "" };
     try {
-      // Use the real client IP; for localhost/dev use a fallback
-      const lookupIp = (ip === "::1" || ip === "127.0.0.1" || ip === "unknown") ? "" : ip;
-      const geoUrl = lookupIp ? `http://ip-api.com/json/${lookupIp}?fields=city,regionName,countryCode,timezone` : `http://ip-api.com/json/?fields=city,regionName,countryCode,timezone`;
+      const lookupIp = ip === "::1" || ip === "127.0.0.1" || ip === "unknown" ? "" : ip;
+      const geoUrl = lookupIp
+        ? `http://ip-api.com/json/${lookupIp}?fields=city,regionName,countryCode,timezone`
+        : `http://ip-api.com/json/?fields=city,regionName,countryCode,timezone`;
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 3000);
       const geoRes = await fetch(geoUrl, { signal: controller.signal });
@@ -587,7 +741,7 @@ app.post("/api/track-visit", rateLimit(10, 60 * 1000), async (req, res) => {
         if (geoData.timezone) geo.timezone = geoData.timezone;
       }
     } catch {
-      // Geolocation failed silently — we still log the visit
+      // Fail gracefully
     }
 
     const visitorDoc = {
@@ -599,18 +753,16 @@ app.post("/api/track-visit", rateLimit(10, 60 * 1000), async (req, res) => {
       userAgent: ua.substring(0, 500),
       device,
       browser,
-      referrer: referrer.substring(0, 500),
+      referrer,
       page,
-      visitedAt: new Date()
+      visitedAt: new Date(),
     };
 
     const col = getVisitorCollection();
     await col.insertOne(visitorDoc);
 
-    console.log(`👁️ Visitor: ${geo.city}, ${geo.country} | ${device}/${browser} | ${new Date().toLocaleTimeString()}`);
     res.json({ success: true });
   } catch (error) {
-    // Silently fail — visitor tracking should never break the site
     console.error("Visitor tracking error:", error.message);
     res.json({ success: false });
   }
@@ -622,13 +774,11 @@ app.get("/api/analytics/visitors", requireAdmin, async (req, res) => {
     const col = getVisitorCollection();
     const now = new Date();
 
-    // Time boundaries
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const weekStart = new Date(todayStart);
-    weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // Sunday of current week
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    // Parallel count queries
     const [totalCount, todayCount, weekCount, monthCount] = await Promise.all([
       col.countDocuments({}),
       col.countDocuments({ visitedAt: { $gte: todayStart } }),
@@ -636,7 +786,6 @@ app.get("/api/analytics/visitors", requireAdmin, async (req, res) => {
       col.countDocuments({ visitedAt: { $gte: monthStart } }),
     ]);
 
-    // Daily counts for the last 30 days (for chart)
     const thirtyDaysAgo = new Date(todayStart);
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
 
@@ -647,16 +796,15 @@ app.get("/api/analytics/visitors", requireAdmin, async (req, res) => {
           _id: {
             year: { $year: "$visitedAt" },
             month: { $month: "$visitedAt" },
-            day: { $dayOfMonth: "$visitedAt" }
+            day: { $dayOfMonth: "$visitedAt" },
           },
-          count: { $sum: 1 }
-        }
+          count: { $sum: 1 },
+        },
       },
-      { $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 } }
+      { $sort: { "_id.year": 1, "_id.month": 1, "_id.day": 1 } },
     ];
     const dailyRaw = await col.aggregate(dailyPipeline).toArray();
 
-    // Fill in zero-count days for the last 30 days
     const dailyCounts = [];
     for (let i = 0; i < 30; i++) {
       const d = new Date(thirtyDaysAgo);
@@ -667,38 +815,35 @@ app.get("/api/analytics/visitors", requireAdmin, async (req, res) => {
       dailyCounts.push({
         date: d.toISOString().split("T")[0],
         label: d.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-        count: match ? match.count : 0
+        count: match ? match.count : 0,
       });
     }
 
-    // Top 5 locations
     const topLocations = await col.aggregate([
       { $match: { city: { $ne: "Unknown" } } },
       { $group: { _id: { city: "$city", country: "$country" }, count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 5 },
-      { $project: { _id: 0, city: "$_id.city", country: "$_id.country", count: 1 } }
+      { $project: { _id: 0, city: "$_id.city", country: "$_id.country", count: 1 } },
     ]).toArray();
 
-    // Device breakdown
     const deviceBreakdown = await col.aggregate([
       { $group: { _id: "$device", count: { $sum: 1 } } },
-      { $sort: { count: -1 } }
+      { $sort: { count: -1 } },
     ]).toArray();
 
-    // Paginated visitors list (default: page 1, 15 per page)
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 15));
     const skip = (page - 1) * limit;
 
-    const recentVisitors = await col.find({})
+    const recentVisitors = await col
+      .find({})
       .sort({ visitedAt: -1 })
       .skip(skip)
       .limit(limit)
       .project({ ip: 0, userAgent: 0 })
       .toArray();
 
-    // Convert _id to string for frontend
     const visitors = recentVisitors.map((v) => ({ ...v, _id: v._id.toString() }));
     const totalPages = Math.ceil(totalCount / limit);
 
@@ -709,7 +854,7 @@ app.get("/api/analytics/visitors", requireAdmin, async (req, res) => {
       topLocations,
       deviceBreakdown: deviceBreakdown.map((d) => ({ device: d._id || "Unknown", count: d.count })),
       visitors,
-      pagination: { page, limit, totalPages, totalRecords: totalCount }
+      pagination: { page, limit, totalPages, totalRecords: totalCount },
     });
   } catch (error) {
     sendServerError(res, "Failed to fetch analytics", error);
@@ -719,9 +864,13 @@ app.get("/api/analytics/visitors", requireAdmin, async (req, res) => {
 // DELETE /api/analytics/visitors/:id - Admin-only: delete a single visitor log
 app.delete("/api/analytics/visitors/:id", requireAdmin, async (req, res) => {
   try {
+    const id = req.params.id;
+    if (!id || !/^[0-9a-fA-F]{24}$/.test(id)) {
+      return res.status(400).json({ error: "Invalid visitor record ID format" });
+    }
     const { ObjectId } = await import("mongodb");
     const col = getVisitorCollection();
-    const result = await col.deleteOne({ _id: new ObjectId(req.params.id) });
+    const result = await col.deleteOne({ _id: new ObjectId(id) });
     if (result.deletedCount === 0) {
       return res.status(404).json({ error: "Visitor record not found" });
     }
@@ -748,7 +897,7 @@ app.get("/api/health", (req, res) => {
     status: "online",
     mongoState: mongoose.connection.readyState === 1 ? "connected" : "connecting",
     cloudinaryConfigured: Boolean(process.env.CLOUDINARY_CLOUD_NAME),
-    timestamp: new Date()
+    timestamp: new Date(),
   });
 });
 
@@ -766,7 +915,7 @@ if (fs.existsSync(path.join(clientBuildPath, "index.html"))) {
       status: "online",
       health: "/api/health",
       mongoState: mongoose.connection.readyState === 1 ? "connected" : "connecting",
-      timestamp: new Date()
+      timestamp: new Date(),
     });
   });
 }
@@ -777,6 +926,11 @@ const startServer = async () => {
     console.log(`🚀 Production High-Performance API Server running on port ${PORT}`);
   });
 
+  if (!MONGODB_URI) {
+    console.warn("⚠️ [SECURITY WARNING] MONGODB_URI environment variable is not configured. Database features will be unavailable until MONGODB_URI is provided in .env.");
+    return;
+  }
+
   try {
     console.log("Connecting to MongoDB Atlas Cluster with Connection Pooling...");
     await mongoose.connect(MONGODB_URI, {
@@ -784,7 +938,7 @@ const startServer = async () => {
       serverSelectionTimeoutMS: 8000,
       maxPoolSize: 10,
       minPoolSize: 2,
-      socketTimeoutMS: 45000
+      socketTimeoutMS: 45000,
     });
     console.log("Connected successfully to MongoDB Atlas!");
   } catch (err) {
@@ -792,4 +946,9 @@ const startServer = async () => {
   }
 };
 
-startServer();
+if (!process.env.VITEST && process.env.NODE_ENV !== "test") {
+  startServer();
+}
+
+export default app;
+export { startServer, getAdminPasscode };

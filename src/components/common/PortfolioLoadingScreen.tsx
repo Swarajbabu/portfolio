@@ -1,12 +1,27 @@
+/**
+ * ==============================================================================
+ * COMMON COMPONENT: PortfolioLoadingScreen
+ * ==============================================================================
+ * Purpose:
+ *   4-stage animated loading screen displayed on cold-starts:
+ *   - Stage 1: Handshake (0-2s)
+ *   - Stage 2: Server Boot / Cloud Spin-Up (3-7s)
+ *   - Stage 3: Database Sync (8-13s)
+ *   - Stage 4: Readying UI (14s+)
+ *   - Includes live elapsed timer, free-tier backend boot note, and a fallback
+ *     "Continue with local fallback data" skip button after 7 seconds.
+ * ==============================================================================
+ */
+
 import React, { useState, useEffect } from "react";
 import { Server, Coffee, Database, Sparkles, Star, Terminal, Zap, ArrowRight } from "lucide-react";
 
-interface PortfolioLoadingScreenProps {
+export interface PortfolioLoadingScreenProps {
   onSkip?: () => void;
 }
 
 export const PortfolioLoadingScreen: React.FC<PortfolioLoadingScreenProps> = ({ onSkip }) => {
-  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [elapsedSeconds, setElapsedSeconds] = useState<number>(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -143,7 +158,7 @@ export const PortfolioLoadingScreen: React.FC<PortfolioLoadingScreenProps> = ({ 
           <div className="pt-2">
             <button
               onClick={onSkip}
-              className="inline-flex items-center gap-1.5 text-xs font-black text-black bg-white border-2 border-black px-3.5 py-1.5 hover:bg-neo-secondary transition-colors neo-btn-press shadow-[3px_3px_0px_0px_#000]"
+              className="inline-flex items-center gap-1.5 text-xs font-black text-black bg-white border-2 border-black px-3.5 py-1.5 hover:bg-neo-secondary transition-colors neo-btn-press shadow-[3px_3px_0px_0px_#000] cursor-pointer"
             >
               <span>Continue with local fallback data</span>
               <ArrowRight className="h-3.5 w-3.5" />

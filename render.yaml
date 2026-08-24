@@ -28,3 +28,5 @@ services:
         sync: false
       - key: SMTP_SERVICE
         value: gmail
+      - key: ALLOWED_ORIGINS
+        sync: false

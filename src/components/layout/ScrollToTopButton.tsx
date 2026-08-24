@@ -1,8 +1,18 @@
+/**
+ * ==============================================================================
+ * LAYOUT COMPONENT: ScrollToTopButton
+ * ==============================================================================
+ * Purpose:
+ *   Floating Neo-brutalist action button in bottom-right corner that becomes
+ *   visible when user scrolls beyond 350px, allowing one-click smooth scroll to top.
+ * ==============================================================================
+ */
+
 import { useState, useEffect } from "react";
 import { ArrowUp } from "lucide-react";
 
 export const ScrollToTopButton = () => {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState<boolean>(false);
 
   useEffect(() => {
     const toggleVisibility = () => {
@@ -30,7 +40,7 @@ export const ScrollToTopButton = () => {
     <button
       onClick={scrollToTop}
       aria-label="Scroll back to top"
-      className={`fixed bottom-6 right-6 z-40 p-3 bg-neo-secondary hover:bg-neo-accent text-black border-3 border-black shadow-[4px_4px_0px_0px_#000] hover:shadow-[6px_6px_0px_0px_#000] transition-all duration-300 neo-btn-press ${
+      className={`fixed bottom-6 right-6 z-40 p-3 bg-neo-secondary hover:bg-neo-accent text-black border-3 border-black shadow-[4px_4px_0px_0px_#000] hover:shadow-[6px_6px_0px_0px_#000] transition-all duration-300 neo-btn-press cursor-pointer ${
         visible ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-6 pointer-events-none"
       }`}
     >

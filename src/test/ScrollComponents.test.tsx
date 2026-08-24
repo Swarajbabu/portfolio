@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import React from "react";
-import RevealOnScroll from "../components/RevealOnScroll";
-import ScrollProgressBar from "../components/ScrollProgressBar";
-import ScrollToTopButton from "../components/ScrollToTopButton";
+import { RevealOnScroll } from "../components/common/RevealOnScroll";
+import { ScrollProgressBar } from "../components/layout/ScrollProgressBar";
+import { ScrollToTopButton } from "../components/layout/ScrollToTopButton";
 
 // Mock IntersectionObserver
 class MockIntersectionObserver {

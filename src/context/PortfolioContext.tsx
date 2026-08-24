@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { portfolioData as defaultData } from "@/data/portfolio";
+import { portfolioData as defaultData, PortfolioData } from "@/data/portfolio";
 import { getApiUrl } from "@/lib/api";
 
-type PortfolioData = typeof defaultData;
+export type { PortfolioData };
 
 interface PortfolioContextType {
   data: PortfolioData;

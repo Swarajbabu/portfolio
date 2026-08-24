@@ -244,3 +244,5 @@ export const portfolioData = {
     note: "© Swaraj Vecha"
   }
 };
+
+export type PortfolioData = typeof portfolioData;

@@ -1,17 +1,56 @@
-import { useState } from "react";
-import { usePortfolio } from "@/context/PortfolioContext";
-import { Send, Mail, Phone, Linkedin, Star, MessageSquare, ExternalLink, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
-import { getApiUrl } from "@/lib/api";
-import RevealOnScroll from "@/components/RevealOnScroll";
+/**
+ * ==============================================================================
+ * SECTION: ContactSection
+ * ==============================================================================
+ * Purpose:
+ *   Interactive contact inquiry portal with:
+ *   - Formspree / Web3Forms direct email submission with fallback to custom backend
+ *   - Live form validation & clear success/error banner feedback
+ *   - Direct contact action cards (Email, Mobile, LinkedIn with external link icon)
+ *   - Developer social links (GitHub, LeetCode / Direct Mail)
+ *
+ * Data Source:
+ *   - `usePortfolio().data.contact` & `usePortfolio().data.personal`
+ * ==============================================================================
+ */
 
-const ContactSection = () => {
+import { useState, FormEvent } from "react";
+import { usePortfolio } from "@/context/PortfolioContext";
+import { Send, Mail, Phone, Linkedin, Star, ExternalLink, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { getApiUrl } from "@/lib/api";
+import RevealOnScroll from "@/components/common/RevealOnScroll";
+
+/* -------------------------------------------------------------------------- */
+/* 1. TYPES & INTERFACES                                                      */
+/* -------------------------------------------------------------------------- */
+
+interface ContactFormState {
+  name: string;
+  email: string;
+  message: string;
+}
+
+type SubmissionStatus = "idle" | "sending" | "success" | "error";
+
+/* -------------------------------------------------------------------------- */
+/* 2. COMPONENT                                                               */
+/* -------------------------------------------------------------------------- */
+
+export const ContactSection = () => {
+  /* 2.1 DATA & STATE ------------------------------------------------------- */
   const { data } = usePortfolio();
   const { contact, personal } = data;
-  const [form, setForm] = useState({ name: "", email: "", message: "" });
-  const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">("idle");
-  const [feedbackMsg, setFeedbackMsg] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const [form, setForm] = useState<ContactFormState>({ name: "", email: "", message: "" });
+  const [status, setStatus] = useState<SubmissionStatus>("idle");
+  const [feedbackMsg, setFeedbackMsg] = useState<string>("");
+
+  /* 2.2 SOCIAL URL PARSING ------------------------------------------------- */
+  const linkedinUrl = personal.linkedin || personal.socials?.linkedin || "https://linkedin.com/in/swaraj-vecha";
+  const displayLinkedin = linkedinUrl.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//i, "").replace(/\/$/, "");
+
+  /* 2.3 SUBMISSION HANDLER ------------------------------------------------- */
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setStatus("sending");
     setFeedbackMsg("");
@@ -60,7 +99,7 @@ const ContactSection = () => {
         if (res.ok) sentSuccessfully = true;
       }
 
-      // Also trigger backend direct email notification if configured
+      // 2. Also trigger backend direct email notification if configured
       try {
         await fetch(getApiUrl("/api/contact"), {
           method: "POST",
@@ -87,12 +126,14 @@ const ContactSection = () => {
     }
   };
 
-  const linkedinUrl = personal.linkedin || personal.socials?.linkedin || "https://linkedin.com/in/swaraj-vecha";
-  const displayLinkedin = linkedinUrl.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//i, "").replace(/\/$/, "");
-
+  /* 2.4 RENDER ------------------------------------------------------------- */
   return (
-    <section id="contact" className="py-20 sm:py-32 bg-foreground relative overflow-hidden">
-      {/* Decorative elements */}
+    <section 
+      id="contact" 
+      className="py-20 sm:py-32 bg-foreground relative overflow-hidden"
+      aria-label="Contact Section"
+    >
+      {/* 2.4.1 DECORATIVE FLOATING ELEMENTS */}
       <div className="absolute top-8 right-8 animate-spin-slow hidden sm:block z-0 pointer-events-none">
         <Star className="h-16 w-16 stroke-white fill-neo-secondary neo-shadow-white" strokeWidth={2} />
       </div>
@@ -109,11 +150,16 @@ const ContactSection = () => {
         </div>
       </div>
 
+      {/* 2.4.2 MAIN CONTAINER */}
       <div className="max-w-4xl mx-auto px-4 sm:px-8 relative z-10">
+        
+        {/* --- SECTION HEADER --- */}
         <RevealOnScroll animation="fade-down">
           <div className="mb-12">
-            <span className="inline-block neo-border bg-neo-accent px-4 py-2 font-black text-sm uppercase tracking-widest rotate-1 border-card"
-              style={{ boxShadow: "8px 8px 0px 0px #fff" }}>
+            <span 
+              className="inline-block neo-border bg-neo-accent px-4 py-2 font-black text-sm uppercase tracking-widest rotate-1 border-card"
+              style={{ boxShadow: "8px 8px 0px 0px #fff" }}
+            >
               {contact.title}
             </span>
           </div>
@@ -121,8 +167,10 @@ const ContactSection = () => {
           <p className="font-bold text-xl text-card mb-10 max-w-xl">{contact.copy}</p>
         </RevealOnScroll>
 
+        {/* --- 2-COLUMN GRID: FORM & CONTACT DETAILS --- */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
-          {/* Contact Message Form */}
+          
+          {/* LEFT: Contact Message Form */}
           <RevealOnScroll animation="fade-right" className="h-full">
             <form onSubmit={handleSubmit} className="flex flex-col justify-between h-full space-y-4">
               <div className="space-y-4 flex-1 flex flex-col">
@@ -167,6 +215,7 @@ const ContactSection = () => {
                 </div>
               )}
 
+              {/* Submit Button */}
               <button
                 type="submit"
                 disabled={status === "sending"}
@@ -188,9 +237,10 @@ const ContactSection = () => {
             </form>
           </RevealOnScroll>
 
-          {/* Right: Contact Information Cards & Socials */}
+          {/* RIGHT: Contact Info Cards & Social Badges */}
           <RevealOnScroll animation="fade-left" delay={150} className="h-full">
             <div className="flex flex-col justify-between h-full space-y-4">
+              
               {/* EMAIL BOX */}
               <a
                 href={`mailto:${personal.email}`}
@@ -287,8 +337,10 @@ const ContactSection = () => {
                   </a>
                 )}
               </div>
+
             </div>
           </RevealOnScroll>
+
         </div>
       </div>
     </section>

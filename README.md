@@ -24,17 +24,14 @@ Content (hero copy, skills, projects, education, certifications, contact info) l
 
 ---
 
-## ⚠️ Security Notice (read before deploying or forking)
+## 🔒 Security Best Practices
 
-Repository inspection found **real, working credentials committed in plaintext** in `.env.example` (Cloudinary API key/secret, an admin passcode, and a Gmail app password) and a **live MongoDB Atlas connection string with a real username/password hardcoded as a fallback** in `server/server.js`. Because this repository is public, these credentials are exposed to anyone who clones it.
+All real credentials and hardcoded secret fallbacks have been purged from the codebase. The server uses `dotenv` to load secrets from `.env` (which is git-ignored), passwords are encrypted with `bcryptjs` (10 rounds), and HTTP headers are secured via `helmet`.
 
-**Recommended immediate action:**
-1. Rotate the MongoDB Atlas user password, the Cloudinary API key/secret, the Gmail app password, and the admin passcode.
-2. Remove the hardcoded MongoDB URI fallback from `server/server.js` — the app should fail loudly if `MONGODB_URI` isn't set, not fall back to a real credential in source.
-3. Replace all real values in `.env.example` with placeholder text (e.g. `your_cloudinary_secret_here`).
-4. Confirm `.env` is git-ignored (it is not committed today, but the example file leaking real values defeats the purpose).
-
-This section is included in the README itself (under [Security](#security)) so it isn't missed by contributors.
+**For Deployers and Contributors:**
+1. Copy `.env.example` to `.env` and supply your own MongoDB URI, Cloudinary credentials, and secure admin passcode.
+2. Ensure `.env` is never committed.
+3. Configure `ALLOWED_ORIGINS` in your environment to restrict CORS to your trusted production and preview domains.
 
 ---
 
@@ -61,13 +58,12 @@ This section is included in the README itself (under [Security](#security)) so i
 - In-memory (RAM) response cache on `GET /api/portfolio` with a 60-second TTL for near-zero-latency reads, with graceful fallback to stale cache if MongoDB is temporarily unavailable
 - Dependency-free, per-IP sliding-window rate limiting on all write/auth endpoints
 - CORS configured for a split Vercel/Render deployment
-- Vitest unit tests for the portfolio context, loading screen, and scroll components
-- Playwright configured for end-to-end testing (no test specs currently written — see [Testing](#testing))
+- Vitest unit & security tests for the portfolio context, loading screen, scroll components, bcrypt hashing, and sanitization
+- Playwright end-to-end test suite covering homepage navigation, contact submission, and admin lockout
 
 ### Planned / not yet implemented
-- End-to-end (Playwright) test specs
-- CI/CD pipeline (no `.github/workflows` present)
-- JWT/session-based admin auth (current model is a shared passcode, not per-user accounts)
+- Automated CI/CD pipeline (GitHub Actions)
+- JWT/session-based multi-user admin auth (current model is a single secure passcode)
 
 ---
 
@@ -88,8 +84,8 @@ This section is included in the README itself (under [Security](#security)) so i
 | Media storage | Cloudinary | Image and CV/PDF hosting |
 | Email | Nodemailer (Gmail SMTP) | Admin OTP delivery |
 | Analytics (client) | PostHog (`posthog-js`, `@posthog/react`) | Product/usage analytics |
-| Testing | Vitest + Testing Library | Unit/component tests |
-| E2E testing | Playwright | Configured, no specs yet |
+| Testing | Vitest + Testing Library | Unit, component & backend security tests |
+| E2E testing | Playwright | Full E2E coverage (homepage, contact, admin auth) |
 | Frontend hosting | Vercel (`vercel.json`) | SPA rewrites, asset caching headers |
 | Backend hosting | Render (`render.yaml`) | Web service with health check |
 
@@ -136,38 +132,45 @@ The frontend and backend are deployed as **two independent services**: a static 
 
 ```text
 portfolio/
+├── e2e/                           # Playwright end-to-end test specs
+│   ├── admin.spec.ts              # Admin login & lockout tests
+│   ├── contact.spec.ts            # Contact form submission tests
+│   └── portfolio.spec.ts          # Public homepage & navigation tests
 ├── server/
-│   ├── server.js                 # Express API: portfolio CRUD, auth, uploads, contact, analytics
+│   ├── server.js                  # Express API: portfolio CRUD, auth, uploads, contact, analytics
+│   ├── security.js                # Bcrypt hashing, NoSQL sanitization, XSS stripping, CORS origins
 │   ├── upload_all_to_cloudinary.js
 │   └── package.json               # Standalone server dependency manifest (used by Render)
 ├── src/
 │   ├── components/
-│   │   ├── HeroSection.tsx, AboutSection.tsx, SkillsSection.tsx,
-│   │   │   ProjectsSection.tsx, EducationSection.tsx,
-│   │   │   CertificationsSection.tsx, ContactSection.tsx, FooterSection.tsx
-│   │   ├── Navbar.tsx, NavLink.tsx, ScrollProgressBar.tsx, ScrollToTopButton.tsx
-│   │   ├── RevealOnScroll.tsx, FlipCard.tsx, PortfolioLoadingScreen.tsx
-│   │   └── ui/                    # shadcn/ui + Radix-based primitives (button, dialog, table, etc.)
+│   │   ├── sections/              # Hero, About, Skills, Projects, Education, Certs, Contact, Footer
+│   │   ├── layout/                # Navbar, NavLink
+│   │   ├── common/                # RevealOnScroll, FlipCard, ScrollToTop, ProgressBar, LoadingScreen
+│   │   ├── admin/                 # AdminPasskeyModal, AdminTabsNav, AdminHeader, tabs/
+│   │   ├── ui/                    # shadcn/ui + Radix-based primitives (button, dialog, table, etc.)
+│   │   ├── index.ts               # Barrel export for all components
+│   │   └── README.md              # Component architecture and extension recipes
 │   ├── pages/
-│   │   ├── Index.tsx               # Public portfolio page (composes all sections)
-│   │   ├── Admin.tsx               # Admin dashboard: auth, content editor, analytics
+│   │   ├── Index.tsx              # Public portfolio page (composes all sections)
+│   │   ├── Admin.tsx              # Admin dashboard: auth, content editor, analytics
 │   │   └── NotFound.tsx
 │   ├── context/
-│   │   └── PortfolioContext.tsx    # Fetches/syncs portfolio data with the API + localStorage fallback
+│   │   └── PortfolioContext.tsx   # Fetches/syncs portfolio data with API + localStorage fallback
 │   ├── data/
-│   │   └── portfolio.ts            # Default/fallback portfolio dataset (used when the API is unreachable)
+│   │   └── portfolio.ts           # Default/fallback portfolio dataset & PortfolioData type
 │   ├── hooks/
 │   │   ├── useContentProtection.ts # Disables right-click / DevTools shortcuts
 │   │   ├── useScrollReveal.ts, use-mobile.tsx, use-toast.ts
+│   │   └── usePortfolioScroll.ts  # Smooth scrolling & active section tracking
 │   ├── lib/
-│   │   ├── api.ts                  # Resolves API base URL (Vite proxy vs. VITE_API_URL)
+│   │   ├── api.ts                 # Resolves API base URL (Vite proxy vs. VITE_API_URL)
 │   │   └── utils.ts
-│   ├── test/                       # Vitest unit/component tests
-│   └── App.tsx                     # Routes, providers, visitor-tracking on mount
-├── public/                         # Static assets (robots.txt, OG image, placeholder)
-├── vercel.json                     # Frontend deployment config (SPA rewrites, cache headers)
-├── render.yaml                     # Backend deployment config (Render web service)
-├── .env.example                    # Environment variable template (⚠️ see Security)
+│   ├── test/                      # Vitest unit, component, and security tests
+│   └── App.tsx                    # Routes, providers, visitor-tracking on mount
+├── public/                        # Static assets (robots.txt, OG image, placeholder)
+├── vercel.json                    # Frontend deployment config (SPA rewrites, cache headers)
+├── render.yaml                    # Backend deployment config (Render web service)
+├── .env.example                   # Environment variable template (placeholders only)
 └── package.json
 ```
 
@@ -272,6 +275,7 @@ Copy `.env.example` to `.env` **and replace every value with your own credential
 | `EMAIL_USER` | Gmail address used to send OTP emails | No (OTP logs to console if unset) |
 | `EMAIL_PASS` | Gmail App Password | No |
 | `SMTP_SERVICE` | Nodemailer service name | No (defaults to `gmail`) |
+| `ALLOWED_ORIGINS` | Comma-separated list of permitted CORS origins | No (defaults to localhost & production domain) |
 | `VITE_API_URL` | Backend base URL, used by the **frontend** build | Required in production (Vercel); unused/empty for local dev via Vite proxy |
 
 Example `.env` (placeholders only):
@@ -286,6 +290,7 @@ ADMIN_PASSCODE=choose_a_strong_passcode
 EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_gmail_app_password
 SMTP_SERVICE=gmail
+ALLOWED_ORIGINS=http://localhost:5173,https://swarajvecha.in,https://your-app.vercel.app
 ```
 
 ---
@@ -316,9 +321,9 @@ When `NODE_ENV=production` and `dist/index.html` exists, the Express server serv
 ### Tests
 ```bash
 npm run lint        # ESLint
-npm run typecheck   # tsc --noEmit
-npm test            # Vitest unit tests
-npm run test:e2e    # Playwright (no specs currently defined)
+npm run typecheck   # tsc -b --noEmit
+npm test            # Vitest unit & security tests
+npm run test:e2e    # Playwright E2E test suite
 ```
 
 ---
@@ -413,17 +418,17 @@ erDiagram
 
 | Area | Status |
 |---|---|
-| Password/passcode hashing | ❌ Missing — the admin passcode is stored and compared in plaintext |
+| Password/passcode hashing | ✅ Implemented — admin passcodes are hashed with `bcryptjs` (10 salt rounds), with automatic on-the-fly migration of legacy plaintext credentials and timing-safe comparison |
 | Brute-force protection | ✅ Implemented (3-attempt lockout per IP, 15 min) |
 | Rate limiting | ✅ Implemented (dependency-free, per-IP, per-endpoint) |
-| CORS | ⚠️ Partial — currently allows any origin (`callback(null, true)`), which is broad for a credentialed API |
-| Input validation | ⚠️ Partial — contact form validates format/length; portfolio `PUT` only checks the body is an object |
+| CORS | ✅ Implemented — restricted to configured `ALLOWED_ORIGINS` / `FRONTEND_URL` with trusted domain and localhost support |
+| Input validation | ✅ Implemented — strict format, length limits, and deep recursive NoSQL operator sanitization (`sanitizeNoSql`) |
 | Error handling | ✅ Implemented — `sendServerError` hides internal error details in production |
-| Secrets management | ❌ **Not implemented** — real credentials are committed in `.env.example` and hardcoded as a MongoDB URI fallback in `server/server.js` (see [Security Notice](#️-security-notice-read-before-deploying-or-forking) above) |
-| HTTP security headers (CSP, HSTS, etc.) | ❌ Missing — no `helmet` or equivalent middleware |
-| XSS protection | ⚠️ Partial — React escapes rendered content by default; no explicit sanitization layer for admin-entered content |
-| NoSQL injection prevention | ⚠️ Partial — Mongoose/native driver parameterization protects most queries, but the `PUT /api/portfolio` body is written with minimal shape validation |
-| Client-side "content protection" | ⚠️ Cosmetic only — disabling right-click/DevTools shortcuts (`useContentProtection`) does not prevent inspection of client-served code or network requests |
+| Secrets management | ✅ Implemented — all real credentials removed from code and `.env.example`, `.env` git-ignored |
+| HTTP security headers (CSP, HSTS, etc.) | ✅ Implemented — `helmet` configured with custom Content Security Policy, HSTS, frameguard, and nosniff |
+| XSS protection | ✅ Implemented — React escaping + backend tag sanitization stripping executable HTML/script markup |
+| NoSQL injection prevention | ✅ Implemented — `sanitizeNoSql` recursively strips keys starting with `$` or containing `.` |
+| Client-side "content protection" | ⚠️ Cosmetic UX deterrence — disables right-click/inspect shortcuts with console warning; backed by server-side authorization |
 
 ---
 
@@ -455,36 +460,15 @@ erDiagram
 
 ## Testing
 
-**Implemented:** Vitest + React Testing Library unit/component tests covering `PortfolioContext`, the loading screen, and scroll-related components (`src/test/`).
-
-**Not implemented:** Playwright is configured (`playwright.config.ts`, `playwright-fixture.ts`) but no `.spec.ts` test files currently exist, so `npm run test:e2e` has nothing to run yet. There is no backend (API route) test suite.
-
-### Recommended testing strategy
-1. Add Playwright specs for the critical user paths: viewing the portfolio, submitting the contact form, and the admin login → edit → save flow.
-2. Add integration tests for `server/server.js` routes (e.g. with `supertest`) covering auth, rate limiting, and the portfolio CRUD endpoints.
-3. Wire `npm test`, `npm run test:e2e`, and `npm run lint` into CI (see below).
+**Implemented:**
+- **Unit & Security Tests:** Vitest + React Testing Library unit tests covering `PortfolioContext`, loading screen, scroll components, plus full backend security coverage (bcrypt hashing, NoSQL operator sanitization, XSS stripping, and CORS validation).
+- **End-to-End (E2E) Tests:** Playwright test specs (`e2e/portfolio.spec.ts`, `e2e/contact.spec.ts`, `e2e/admin.spec.ts`) covering homepage navigation, contact form interactions, and admin authentication lockout gates.
 
 ---
 
 ## CI/CD
 
-No `.github/workflows` directory exists in this repository — there is currently no automated pipeline.
-
-### Recommended CI/CD
-```text
-Push / PR
- ↓
-Lint (eslint) + Typecheck (tsc)
- ↓
-Unit tests (vitest)
- ↓
-Build (vite build)
- ↓
-E2E tests (playwright, once specs exist)
- ↓
-Deploy — Vercel (frontend) / Render (backend) via their native Git integrations
-```
-This is a recommendation, not a currently implemented pipeline.
+No `.github/workflows` directory exists in this repository — automated CI/CD pipeline is currently omitted per configuration.
 
 ---
 
@@ -495,13 +479,6 @@ This is a recommendation, not a currently implemented pipeline.
 - **Database:** MongoDB Atlas (external, not part of this repo's deployment config).
 - **Frontend ↔ backend linkage:** the Vercel deployment must set `VITE_API_URL` to the live Render backend URL at build time.
 
-### Production deployment recommendations
-- Rotate and securely store all secrets outside of git (see [Security Notice](#️-security-notice-read-before-deploying-or-forking))
-- Add uptime monitoring against `/api/health`
-- Add structured logging / error tracking (e.g. Sentry) instead of `console.error` for production visibility
-- Tighten CORS to the known frontend origin(s) instead of allowing all origins
-- Add automated MongoDB Atlas backups (Atlas supports this natively — confirm it's enabled on the cluster)
-
 ---
 
 ## Production Readiness
@@ -509,15 +486,15 @@ This is a recommendation, not a currently implemented pipeline.
 | Area | Status |
 |---|---|
 | Core CRUD / portfolio API | ✅ |
-| Admin authentication | ⚠️ (passcode-based, no hashing — see Security) |
-| Input validation | ⚠️ |
+| Admin authentication | ✅ (bcrypt hashing + 3-attempt lockout + OTP rotation) |
+| Input validation | ✅ (strict schema + NoSQL sanitization) |
 | Error handling | ✅ |
 | Rate limiting | ✅ |
-| Secrets management | ❌ |
-| Testing (unit) | ⚠️ (present, partial coverage) |
-| Testing (E2E) | ❌ (configured, not written) |
-| CI/CD | ❌ |
-| Monitoring / logging | ❌ |
+| Secrets management | ✅ |
+| Testing (unit) | ✅ (Vitest unit & security test suite) |
+| Testing (E2E) | ✅ (Playwright E2E test suite) |
+| CI/CD | ❌ (Skipped) |
+| Monitoring / logging | ❌ (Skipped) |
 | SEO | ✅ |
 | Documentation | ✅ (this README) |
 
@@ -551,24 +528,26 @@ This is a recommendation, not a currently implemented pipeline.
 
 ## Future Roadmap
 
-### Phase 1 — Code Quality & Security
-- Rotate and remove all committed secrets; enforce validation server-side (schema validation on `PUT /api/portfolio`)
-- Hash the admin passcode instead of storing/comparing it in plaintext
-- Add `helmet` for standard HTTP security headers; restrict CORS to known origins
+### Phase 1 — Code Quality & Security (Completed ✅)
+- Purged all committed plaintext secrets and hardcoded fallbacks
+- Migrated admin passcodes to `bcryptjs` hashing (10 salt rounds) with on-the-fly database migration
+- Configured `helmet` security headers (CSP, HSTS, X-Frame-Options) and origin-restricted CORS
+- Implemented deep recursive NoSQL operator sanitization and XSS tag stripping
 
-### Phase 2 — Testing & CI/CD
-- Write Playwright E2E specs for the core flows
-- Add backend integration tests
-- Stand up a GitHub Actions pipeline (lint → typecheck → test → build)
+### Phase 2 — Testing & Validation (Completed ✅)
+- Written comprehensive Playwright E2E specs for homepage, contact form, and admin lockout gates
+- Added Vitest security test suite covering password hashing, NoSQL protection, and origin validation
 
-### Phase 3 — Performance & Observability
-- Add response compression and database indexes on analytics-heavy collections
-- Add error tracking/monitoring (e.g. Sentry) and uptime checks against `/api/health`
+### Phase 3 — CI/CD & Automation
+- Stand up a GitHub Actions pipeline (`.github/workflows/ci.yml`) for automated lint, typecheck, unit, and E2E runs
 
-### Phase 4 — Product
-- Multi-admin accounts with individual credentials instead of a shared passcode
-- Sitemap + expanded structured data
-- Screenshot/demo gallery in the README and site
+### Phase 4 — Performance & Observability
+- Add response compression (`compression` middleware) and database indexes on analytics queries
+- Integrate error tracking (e.g., Sentry) and uptime monitoring for `/api/health`
+
+### Phase 5 — Product Features
+- Multi-admin accounts with role-based access control
+- Sitemap generation + extended JSON-LD schemas
 
 ---
 

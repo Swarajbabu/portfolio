@@ -1,3 +1,20 @@
+/**
+ * ==============================================================================
+ * SECTION: SkillsSection
+ * ==============================================================================
+ * Purpose:
+ *   Interactive skills showcase organized by domains:
+ *   - AI & Machine Learning (featured primary specialization)
+ *   - Languages, Frontend, Backend, Databases, Cloud & DevOps, Tools, Soft Skills
+ *   - Real-time search query filtering
+ *   - Domain category tabs
+ *   - Neo-brutalist bento cards with vibrant color palettes
+ *
+ * Data Source:
+ *   - `usePortfolio().data.skills`
+ * ==============================================================================
+ */
+
 import { useState, useMemo } from "react";
 import { usePortfolio } from "@/context/PortfolioContext";
 import {
@@ -18,10 +35,13 @@ import {
   Zap,
   LucideIcon
 } from "lucide-react";
-import RevealOnScroll from "@/components/RevealOnScroll";
+import RevealOnScroll from "@/components/common/RevealOnScroll";
 
-// Curated Vibrant Neo-Color Themes for each Domain
-const categoryMeta: Record<string, {
+/* -------------------------------------------------------------------------- */
+/* 1. TYPES & THEME CONFIGURATION                                             */
+/* -------------------------------------------------------------------------- */
+
+interface CategoryTheme {
   icon: LucideIcon;
   cardBg: string;
   headerBg: string;
@@ -29,7 +49,10 @@ const categoryMeta: Record<string, {
   iconBg: string;
   dotColor: string;
   badgeBg: string;
-}> = {
+}
+
+/** Curated Vibrant Neo-Color Themes for each Domain */
+const CATEGORY_META: Record<string, CategoryTheme> = {
   "AI & Machine Learning": {
     icon: Bot,
     cardBg: "bg-[#FFF9E6]",
@@ -104,17 +127,37 @@ const categoryMeta: Record<string, {
   },
 };
 
-const SkillsSection = () => {
+const DEFAULT_CATEGORY_THEME: CategoryTheme = {
+  icon: Layers,
+  cardBg: "bg-[#FFFDF5]",
+  headerBg: "bg-black",
+  headerText: "text-white",
+  iconBg: "bg-[#FFD93D]",
+  dotColor: "bg-black",
+  badgeBg: "bg-black text-white",
+};
+
+/* -------------------------------------------------------------------------- */
+/* 2. COMPONENT                                                               */
+/* -------------------------------------------------------------------------- */
+
+export const SkillsSection = () => {
+  /* 2.1 DATA & STATE ------------------------------------------------------- */
   const { data } = usePortfolio();
   const { skills } = data;
   const [activeCategory, setActiveCategory] = useState<string>("All");
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("" );
 
+  /* 2.2 COMPUTED CATEGORIES & SKILL COUNTS --------------------------------- */
   const categories = useMemo(() => {
     return ["All", ...skills.groups.map((g) => g.heading)];
   }, [skills.groups]);
 
-  // Filter skills based on selected category & search query
+  const totalSkillCount = useMemo(() => {
+    return skills.groups.reduce((acc, g) => acc + g.items.length, 0);
+  }, [skills.groups]);
+
+  /* 2.3 FILTERED SKILL GROUPS (BY CATEGORY & SEARCH) ----------------------- */
   const filteredGroups = useMemo(() => {
     return skills.groups
       .filter((group) => {
@@ -131,13 +174,14 @@ const SkillsSection = () => {
       .filter((group) => group.items.length > 0);
   }, [skills.groups, activeCategory, searchQuery]);
 
-  const totalSkillCount = useMemo(() => {
-    return skills.groups.reduce((acc, g) => acc + g.items.length, 0);
-  }, [skills.groups]);
-
+  /* 2.4 RENDER ------------------------------------------------------------- */
   return (
-    <section id="skills" className="py-20 sm:py-32 bg-neo-cream grid-bg relative overflow-hidden text-black">
-      {/* Subtle Background Elements */}
+    <section 
+      id="skills" 
+      className="py-20 sm:py-32 bg-neo-cream grid-bg relative overflow-hidden text-black"
+      aria-label="Skills Section"
+    >
+      {/* 2.4.1 BACKGROUND DECORATIVE ICONS */}
       <div className="absolute top-10 right-10 animate-float-y hidden sm:block opacity-25 pointer-events-none">
         <Cpu className="h-28 w-28 text-black" strokeWidth={1} />
       </div>
@@ -145,8 +189,10 @@ const SkillsSection = () => {
         <Terminal className="h-32 w-32 text-black" strokeWidth={1} />
       </div>
 
+      {/* 2.4.2 MAIN CONTAINER */}
       <div className="max-w-7xl mx-auto px-4 sm:px-8 relative z-10">
-        {/* Section Header */}
+        
+        {/* --- HEADER & SEARCH BAR --- */}
         <RevealOnScroll animation="fade-down">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-6">
             <div>
@@ -180,7 +226,7 @@ const SkillsSection = () => {
           </div>
         </RevealOnScroll>
 
-        {/* Category Filter Pills */}
+        {/* --- CATEGORY FILTER TABS --- */}
         <RevealOnScroll animation="fade-up" delay={100}>
           <div className="flex flex-wrap gap-2 mb-10">
             {categories.map((cat) => {
@@ -202,8 +248,9 @@ const SkillsSection = () => {
           </div>
         </RevealOnScroll>
 
-        {/* Vibrant Colorful Bento Cards Grid */}
+        {/* --- BENTO CARDS GRID --- */}
         {filteredGroups.length === 0 ? (
+          /* Empty Search State */
           <div className="border-4 border-black bg-white p-12 text-center shadow-[6px_6px_0px_0px_#000]">
             <p className="font-black text-lg uppercase tracking-wide">No matching skills found for "{searchQuery}"</p>
             <button
@@ -219,15 +266,7 @@ const SkillsSection = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {filteredGroups.map((group, idx) => {
-              const meta = categoryMeta[group.heading] || {
-                icon: Layers,
-                cardBg: "bg-[#FFFDF5]",
-                headerBg: "bg-black",
-                headerText: "text-white",
-                iconBg: "bg-[#FFD93D]",
-                dotColor: "bg-black",
-                badgeBg: "bg-black text-white",
-              };
+              const meta = CATEGORY_META[group.heading] || DEFAULT_CATEGORY_THEME;
               const IconComponent = meta.icon;
               const isHighlight = group.heading === "AI & Machine Learning";
 
@@ -245,6 +284,7 @@ const SkillsSection = () => {
                   <div
                     className={`group border-4 border-black ${meta.cardBg} shadow-[7px_7px_0px_0px_#000] hover:shadow-[12px_12px_0px_0px_#000] hover:-translate-y-1.5 transition-all duration-200 flex flex-col justify-between overflow-hidden h-full`}
                   >
+                    {/* Category Card Header */}
                     <div className={`border-b-3 border-black ${meta.headerBg} ${meta.headerText} p-3.5 sm:p-4 flex items-center justify-between`}>
                       <div className="flex items-center gap-2.5">
                         <div className={`border-2 border-black ${meta.iconBg} p-1.5 shadow-[2px_2px_0px_0px_#000] text-black`}>
@@ -266,7 +306,7 @@ const SkillsSection = () => {
                       </span>
                     </div>
 
-                    {/* Card Content with Compact High-Contrast Badges */}
+                    {/* Skill Badges Body */}
                     <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-4">
                       <div className="flex flex-wrap gap-2">
                         {group.items.map((item) => (
@@ -280,7 +320,7 @@ const SkillsSection = () => {
                         ))}
                       </div>
 
-                      {/* Bottom Micro-Badge */}
+                      {/* Card Footer Status Badge */}
                       <div className="pt-2.5 border-t border-black/10 flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-black/60">
                         <span className="flex items-center gap-1">
                           <Zap className="h-3 w-3 text-black" /> Production Ready
