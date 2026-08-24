@@ -70,7 +70,7 @@ export const AdminAuthLock: React.FC<AdminAuthLockProps> = ({
           <form onSubmit={handleLogin} className="space-y-4">
             <input
               type="password"
-              placeholder="Enter passkey (default: swaraj2026)"
+              placeholder="Enter passkey"
               value={passcode}
               onChange={(e) => setPasscode(e.target.value)}
               className="w-full border-2 border-black bg-[#FAF8F5] px-4 py-3 font-bold text-center text-lg text-black placeholder:text-black/40 focus:bg-yellow-100 focus:outline-none shadow-[3px_3px_0px_0px_#000]"
