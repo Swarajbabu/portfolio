@@ -1,0 +1,41 @@
+# Swaraj Vecha — AI/ML & Full Stack Engineer
+
+> Personal developer portfolio and technical credentials of Swaraj Vecha, an AI/ML and Full-Stack Software Engineer.
+
+## About
+- Name: Swaraj Vecha
+- Role: AI/ML & Full Stack Engineer
+- Location: Hyderabad, Telangana, India
+- Degree: Bachelor of Technology in Computer Science & Engineering (2023–2027)
+- University: Lovely Professional University, Phagwara, Punjab
+- Technical Focus: Scalable Web Applications, Large Language Models (LLMs), RESTful Microservices, Cloud DevOps (Docker, Kubernetes, AWS)
+
+## Skills
+- Languages: TypeScript, JavaScript, Python, C++, Java, SQL
+- Frontend: React 18, Next.js, Tailwind CSS, Vite, HTML5/CSS3
+- Backend: Node.js, Express, REST APIs, Microservices, JWT, WebSockets
+- Databases: MongoDB Atlas, PostgreSQL, Redis, MySQL
+- Cloud & DevOps: Docker, Kubernetes, AWS (EKS, EC2, S3), Terraform, CI/CD, Git/GitHub
+- AI & ML: PyTorch, Scikit-learn, OpenAI APIs, Vector Embeddings, Prompt Engineering
+
+## Featured Projects
+- [Wanderlust - Travel Stay Booking Platform](https://github.com/Swarajbabu): Full-stack rental platform with Mapbox and Cloudinary integration, automated AWS CI/CD pipeline.
+- [WorkHive - Fair Labor Marketplace](https://github.com/Swarajbabu): Democratic cooperative marketplace connecting trades workers with customers via KYC and fixed fair pricing.
+- [TradeX - Stock Trading Platform](https://github.com/Swarajbabu): High-performance stock trading platform with 12 RESTful API endpoints and atomic order execution.
+- [QuickCode AI - Conversational GPT Platform](https://github.com/Swarajbabu): AI coding assistant with markdown rendering, streaming responses, and context-aware history.
+- [QuickLink - Cloud-Native URL Shortener](https://github.com/Swarajbabu): Enterprise MERN URL shortener deployed on AWS EKS with Prometheus/Grafana observability.
+- [CineBook - Real-Time Movie Ticket Booking](https://github.com/Swarajbabu): Live seat-locking ticketing platform with Google OAuth and QR validation.
+
+## Certifications
+- Oracle Cloud Infrastructure 2025 Certified AI Foundations Associate (Oracle, 2026)
+- Oracle Data Platform 2025 Certified Foundations Associate (Oracle, 2026)
+- Introduction to Internet of Things (NPTEL, 2025)
+- Generative AI Applications with No-Code Tools (Udemy, 2025)
+
+## Contact & Links
+- Website: https://www.swarajvecha.in/
+- GitHub: https://github.com/Swarajbabu
+- LinkedIn: https://www.linkedin.com/in/laxmiswarajbabu
+- LeetCode: https://leetcode.com/u/swarajvecha/
+- Email: swarajvecha@gmail.com
+- Phone: +91-9642985278

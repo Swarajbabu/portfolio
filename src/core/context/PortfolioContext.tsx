@@ -28,12 +28,52 @@ interface PortfolioContextType {
   skipLoading: () => void;
 }
 
+const STORAGE_KEY = "swaraj_portfolio_live_cache";
+
 const PortfolioContext = createContext<PortfolioContextType | undefined>(undefined);
 
 export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [data, setData] = useState<PortfolioData | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isMongoConnected, setIsMongoConnected] = useState<boolean>(false);
+  const [data, setData] = useState<PortfolioData | null>(() => {
+    try {
+      if (typeof window !== "undefined") {
+        const cached = localStorage.getItem(STORAGE_KEY);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && parsed.personal) return parsed;
+        }
+      }
+    } catch {
+      // Ignore storage read errors
+    }
+    return null;
+  });
+
+  const [isLoading, setIsLoading] = useState<boolean>(() => {
+    try {
+      if (typeof window !== "undefined") {
+        const cached = localStorage.getItem(STORAGE_KEY);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && parsed.personal) return false;
+        }
+      }
+    } catch {
+      // Fallback to loading
+    }
+    return true;
+  });
+
+  const [isMongoConnected, setIsMongoConnected] = useState<boolean>(() => {
+    try {
+      if (typeof window !== "undefined" && localStorage.getItem(STORAGE_KEY)) {
+        return true;
+      }
+    } catch {
+      // Fallback
+    }
+    return false;
+  });
+
   const [error, setError] = useState<string | null>(null);
 
   const skipLoading = useCallback(() => {
@@ -41,7 +81,13 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   }, []);
 
   const fetchPortfolioFromMongo = useCallback(async () => {
-    setIsLoading(true);
+    // Only trigger full loading spinner if we don't already have data rendered
+    setData((current) => {
+      if (!current) {
+        setIsLoading(true);
+      }
+      return current;
+    });
     setError(null);
 
     const controller = new AbortController();
@@ -71,18 +117,30 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setData(mongoData);
         setIsMongoConnected(true);
         setError(null);
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(mongoData));
+        } catch {
+          // Ignore quota/storage errors
+        }
       } else {
         throw new Error("Incomplete portfolio document structure in database");
       }
     } catch (err: unknown) {
       const fetchError = err as { name?: string; message?: string };
       console.error("MongoDB Atlas connection error:", fetchError.message || fetchError);
-      setIsMongoConnected(false);
-      setError(
-        fetchError.name === "AbortError"
-          ? "Database connection timed out. The server is waking up, please retry."
-          : "Could not load portfolio from MongoDB database."
-      );
+      
+      // If we don't have any data yet, surface the connection error
+      setData((current) => {
+        if (!current) {
+          setIsMongoConnected(false);
+          setError(
+            fetchError.name === "AbortError"
+              ? "Database connection timed out. The server is waking up, please retry."
+              : "Could not load portfolio from MongoDB database."
+          );
+        }
+        return current;
+      });
     } finally {
       clearTimeout(timeoutId);
       setIsLoading(false);
@@ -115,6 +173,11 @@ export const PortfolioProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       if (response.ok) {
         setData(newData);
         setIsMongoConnected(true);
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(newData));
+        } catch {
+          // Ignore
+        }
         return true;
       } else {
         const errJson = await response.json().catch(() => ({}));

@@ -157,12 +157,12 @@ export const ContactSection = () => {
         {/* --- SECTION HEADER --- */}
         <RevealOnScroll animation="fade-down">
           <div className="mb-12">
-            <span 
+            <h2 
               className="inline-block neo-border bg-neo-accent px-4 py-2 font-black text-sm uppercase tracking-widest rotate-1 border-card"
               style={{ boxShadow: "8px 8px 0px 0px #fff" }}
             >
               {contact.title}
-            </span>
+            </h2>
           </div>
 
           <p className="font-bold text-xl text-card mb-10 max-w-xl">{contact.copy}</p>

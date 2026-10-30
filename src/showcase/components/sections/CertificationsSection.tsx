@@ -21,6 +21,7 @@ import { usePortfolio } from "@/context/PortfolioContext";
 import { Award, ExternalLink, Star, Zap, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from "lucide-react";
 import FlipCard from "@/showcase/components/common/FlipCard";
 import RevealOnScroll from "@/showcase/components/common/RevealOnScroll";
+import { getOptimizedImageUrl } from "@/core/utils/imageOptimizer";
 
 /* -------------------------------------------------------------------------- */
 /* 1. TYPES & CONSTANTS                                                       */
@@ -115,9 +116,9 @@ export const CertificationsSection = () => {
         {/* --- HEADER & DESKTOP CONTROLS --- */}
         <RevealOnScroll animation="fade-down">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-12 gap-4">
-            <span className="inline-block neo-border bg-neo-muted px-4 py-2 font-black text-sm uppercase tracking-widest neo-shadow-sm -rotate-1">
+            <h2 className="inline-block neo-border bg-neo-muted px-4 py-2 font-black text-sm uppercase tracking-widest neo-shadow-sm -rotate-1">
               {experience.title} ({items.length})
-            </span>
+            </h2>
 
             {/* Desktop Controls: [< PREV] PAGE X OF Y [NEXT >] */}
             {totalPages > 1 && (
@@ -192,6 +193,7 @@ export const CertificationsSection = () => {
                             target="_blank"
                             rel="noopener noreferrer"
                             className="mt-4 neo-border bg-foreground text-card px-4 py-2 font-black text-sm uppercase tracking-wide neo-btn-press flex items-center justify-center gap-2"
+                            aria-label={`View credential for ${item.role}`}
                             style={{ boxShadow: "4px 4px 0px 0px #FFD93D" }}
                             onClick={(e) => e.stopPropagation()}
                           >
@@ -221,7 +223,11 @@ export const CertificationsSection = () => {
                       <div className="relative w-full flex-1 border-2 border-black bg-black overflow-hidden flex items-center justify-center p-2 my-2">
                         {item.image ? (
                           <img 
-                            src={item.image} 
+                            src={getOptimizedImageUrl(item.image, { width: 600, quality: "auto", format: "auto" })}
+                            loading="lazy"
+                            decoding="async"
+                            width={500}
+                            height={350} 
                             alt={item.role}
                             className="w-full h-full object-contain"
                           />
@@ -240,6 +246,7 @@ export const CertificationsSection = () => {
                             target="_blank"
                             rel="noopener noreferrer"
                             className="border-2 border-black bg-neo-accent hover:bg-black hover:text-white text-black px-4 py-2 font-black text-xs uppercase tracking-widest flex items-center gap-2 shadow-[3px_3px_0px_0px_#000] hover:shadow-[4px_4px_0px_0px_#FFD93D] transition-all"
+                            aria-label={`Open external link for ${item.role}`}
                             onClick={(e) => e.stopPropagation()}
                           >
                             Open Link <ExternalLink className="h-3.5 w-3.5" />

@@ -29,6 +29,7 @@ import {
   Terminal
 } from "lucide-react";
 import RevealOnScroll from "@/showcase/components/common/RevealOnScroll";
+import { getOptimizedImageUrl } from "@/core/utils/imageOptimizer";
 
 /* -------------------------------------------------------------------------- */
 /* 1. TYPES & CONSTANTS                                                       */
@@ -193,7 +194,11 @@ export const ProjectsSection = () => {
                     {/* Visual Image Banner */}
                     <div className="relative border-b-4 border-black bg-black h-44 sm:h-48 overflow-hidden">
                       <img
-                        src={project.image}
+                        src={getOptimizedImageUrl(project.image, { width: 600, quality: "auto", format: "auto" })}
+                        loading="lazy"
+                        decoding="async"
+                        width={600}
+                        height={340}
                         alt={project.name}
                         className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105 opacity-95 group-hover:opacity-100"
                       />
@@ -275,6 +280,7 @@ export const ProjectsSection = () => {
                         {githubLink && githubLink.trim() !== "" && (
                           <a
                             href={githubLink}
+                            aria-label={`View ${project.name} source code on GitHub`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex-1 border-2 border-black bg-black text-white px-3 py-2.5 font-black text-xs uppercase tracking-wider neo-btn-press shadow-[3px_3px_0px_0px_#FF6B6B] hover:bg-neutral-800 flex items-center justify-center gap-1.5 transition-all text-center"
@@ -287,6 +293,7 @@ export const ProjectsSection = () => {
                         {hasValidDeploy && (
                           <a
                             href={deployLink}
+                            aria-label={`View live deployment for ${project.name}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="flex-1 border-2 border-black bg-neo-secondary text-black px-3 py-2.5 font-black text-xs uppercase tracking-wider neo-btn-press shadow-[3px_3px_0px_0px_#000] hover:bg-yellow-300 flex items-center justify-center gap-1.5 transition-all text-center"

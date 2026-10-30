@@ -1,0 +1,53 @@
+# Swaraj Vecha — AI/ML & Full Stack Engineer (Full Profile)
+
+> Comprehensive technical summary, system architecture, education, certifications, and live projects for automated AI agent discoverability.
+
+## Personal Information
+- Full Name: Vecha Laxmi Swaraj Babu (Swaraj Vecha)
+- Headline: AI/ML & Full Stack Engineer | Scalable Systems & Cloud Architecture
+- Location: Hyderabad, Telangana, India
+- Email: swarajvecha@gmail.com
+- Mobile: +91-9642985278
+- Canonical URL: https://www.swarajvecha.in/
+- GitHub: https://github.com/Swarajbabu
+- LinkedIn: https://www.linkedin.com/in/laxmiswarajbabu
+- LeetCode: https://leetcode.com/u/swarajvecha/
+
+## Academic Background
+- Degree: Bachelor of Technology (B.Tech) - Computer Science and Engineering
+  - Institution: Lovely Professional University, Phagwara, Punjab
+  - Duration: August 2023 - August 2027
+- Intermediate / Senior Secondary (12th Grade)
+  - Institution: Narayana Junior College, Hyderabad, Telangana
+  - Duration: March 2021 - March 2023
+- Secondary School Certificate (10th Grade)
+  - Institution: Greenwood High School, Huzurnagar, Telangana
+  - Duration: March 2020 - March 2021
+
+## System Architectures & Projects
+1. QuickLink — Enterprise Cloud-Native URL Shortener
+   - Stack: React, Node.js, Express, MongoDB Atlas, Redis, Docker, Kubernetes (AWS EKS), Jenkins, Prometheus, Grafana
+   - Highlights: Deployed on managed Kubernetes with rolling updates, HPA (Horizontal Pod Autoscaling), and Grafana metrics dashboards.
+
+2. Wanderlust — Full-Stack Vacation Rental Booking Platform
+   - Stack: Node.js, Express, MongoDB, EJS / React, Mapbox GL, Cloudinary, AWS EC2
+   - Highlights: Geo-spatial search using Mapbox coordinates, dynamic image transformation pipelines, automated GitHub Actions deployment.
+
+3. WorkHive — Fair Labor Cooperative Marketplace
+   - Stack: React, TypeScript, Node.js, Express, MongoDB, Tailwind CSS
+   - Highlights: Multi-role authentication, KYC verification workflow, transparent fixed-rate payment settlement.
+
+4. TradeX — Real-Time Stock Trading Simulation
+   - Stack: React, TypeScript, Node.js, Express, MongoDB, WebSockets
+   - Highlights: Atomic transaction isolation, sub-millisecond portfolio valuation, real-time candlestick charts.
+
+5. CineBook — Movie Ticket Booking Platform
+   - Stack: React, Node.js, Express, MongoDB, Google OAuth 2.0
+   - Highlights: Concurrency-safe seat locking mechanism preventing double-booking, encrypted QR ticket generator.
+
+## Certifications & Accreditations
+- Oracle Cloud Infrastructure 2025 Certified AI Foundations Associate (Oracle University)
+- Oracle Data Platform 2025 Certified Foundations Associate (Oracle University)
+- Introduction to Internet of Things (IIT Kharagpur / NPTEL)
+- Build Generative AI Apps and Solutions (Udemy)
+- 200+ Solved Data Structures & Algorithms Challenges (LeetCode)

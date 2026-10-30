@@ -18,6 +18,7 @@ import { useState, useEffect } from "react";
 import { usePortfolio } from "@/context/PortfolioContext";
 import { ArrowRight, Star, Download, Terminal, Cpu, Database } from "lucide-react";
 import defaultHeroImage from "@/assets/swaraj-hero.jpg";
+import { getOptimizedImageUrl } from "@/core/utils/imageOptimizer";
 
 /* -------------------------------------------------------------------------- */
 /* COMPONENT                                                                  */
@@ -142,7 +143,11 @@ export const HeroSection = () => {
           <div className="relative neo-border bg-neo-cream p-3 sm:p-4" style={{ boxShadow: "8px 8px 0px 0px #000" }}>
             <div className="neo-border overflow-hidden">
               <img
-                src={personal.avatar || defaultHeroImage}
+                src={getOptimizedImageUrl(personal.avatar, { width: 500, quality: "auto:good", format: "auto" }) || defaultHeroImage}
+                width={288}
+                height={384}
+                fetchPriority="high"
+                decoding="async"
                 alt={personal.name}
                 className="w-56 h-72 sm:w-72 sm:h-96 object-cover object-top hover:scale-105 transition-all duration-300"
               />

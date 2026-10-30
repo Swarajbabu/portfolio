@@ -63,9 +63,9 @@ export const AboutSection = () => {
         {/* Section Heading Badge */}
         <RevealOnScroll animation="fade-down">
           <div className="mb-12">
-            <span className="inline-block neo-border bg-neo-muted px-4 py-2 font-black text-sm uppercase tracking-widest neo-shadow-sm -rotate-2">
+            <h2 className="inline-block neo-border bg-neo-muted px-4 py-2 font-black text-sm uppercase tracking-widest neo-shadow-sm -rotate-2">
               {about.title}
-            </span>
+            </h2>
           </div>
         </RevealOnScroll>
 

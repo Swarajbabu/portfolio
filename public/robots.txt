@@ -1,6 +1,9 @@
 User-agent: *
 Allow: /
 Allow: /api/portfolio
+Allow: /llms.txt
+Allow: /llms-full.txt
+Allow: /ard.json
 Disallow: /admin
 Disallow: /api/
 

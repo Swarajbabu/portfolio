@@ -1,0 +1,24 @@
+{
+  "$schema": "https://agentic.dev/schemas/ard-manifest-v1.json",
+  "name": "Swaraj Vecha Portfolio",
+  "description": "Portfolio and developer profile of Swaraj Vecha, AI/ML & Full Stack Engineer.",
+  "url": "https://www.swarajvecha.in/",
+  "version": "1.0.0",
+  "resources": [
+    {
+      "type": "llms-txt",
+      "url": "https://www.swarajvecha.in/llms.txt",
+      "description": "Compact LLM-friendly documentation of skills and projects."
+    },
+    {
+      "type": "llms-full-txt",
+      "url": "https://www.swarajvecha.in/llms-full.txt",
+      "description": "Full technical profile, architecture details, and academic history."
+    },
+    {
+      "type": "api",
+      "url": "https://www.swarajvecha.in/api/portfolio",
+      "description": "Public REST endpoint returning structured JSON portfolio data."
+    }
+  ]
+}
