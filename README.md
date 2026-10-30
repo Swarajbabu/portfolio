@@ -4,7 +4,7 @@
 
 **A full-stack, database-backed developer portfolio with a live admin dashboard, Neo-Brutalist UI, and a Node/Express + MongoDB Atlas API.**
 
-[![Live Demo](https://img.shields.io/badge/Live-swarajvecha.in-000000?style=for-the-badge)](https://swarajvecha.in)
+[![Live Demo](https://img.shields.io/badge/Live-www.swarajvecha.in-000000?style=for-the-badge)](https://www.swarajvecha.in)
 [![React](https://img.shields.io/badge/React-18-149ECA?style=for-the-badge&logo=react&logoColor=white)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Node.js](https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://expressjs.com)
@@ -18,7 +18,7 @@
 
 This repository is **not a static portfolio template** — it's a two-tier application: a React 18 + TypeScript single-page app served to visitors, backed by a standalone Express API that persists all content in MongoDB Atlas and serves a **passcode + OTP-protected admin dashboard** for editing every section of the site without touching code.
 
-Content (hero copy, skills, projects, education, certifications, contact info) lives in MongoDB rather than being hardcoded, so the site can be updated from `/admin` at any time. If the API is unreachable, the app transparently falls back to a bundled local dataset and `localStorage`, so the portfolio never shows a broken or empty page.
+Content (hero copy, skills, projects, education, certifications, contact info) is 100% database-driven and persisted in MongoDB Atlas, allowing updates from `/admin` to reflect instantly across the live portfolio.
 
 **Who this is for:** recruiters and hiring managers evaluating the underlying engineering (not just the visual design), and developers who want to see a realistic small-scale full-stack deployment split across Vercel (frontend) and Render (backend).
 
@@ -235,8 +235,8 @@ No screenshots or demo images are currently committed to the repository (`public
 
 ## Live Demo
 
-- **Frontend:** [https://swarajvecha.in](https://swarajvecha.in) (per `index.html` canonical/OG tags; deployed via Vercel per `vercel.json`)
-- **Backend API:** deployed as a Render web service per `render.yaml` (service name `swaraj-portfolio-backend`); the specific `*.onrender.com` URL is set via the frontend's `VITE_API_URL` and isn't hardcoded in the repo.
+- **Frontend:** [https://www.swarajvecha.in](https://www.swarajvecha.in) (per `index.html` canonical/OG tags; deployed via Vercel per `vercel.json`)
+- **Backend API:** deployed as a Render web service per `render.yaml` (service name `swaraj-portfolio-backend` at `https://swaraj-portfolio-backend.onrender.com`).
 
 `TODO: Add the live Render backend URL here if you want it public (or leave it private and keep only the frontend URL).`
 
@@ -294,7 +294,7 @@ ADMIN_PASSCODE=choose_a_strong_passcode
 EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_gmail_app_password
 SMTP_SERVICE=gmail
-ALLOWED_ORIGINS=http://localhost:5173,https://swarajvecha.in,https://your-app.vercel.app
+ALLOWED_ORIGINS=http://localhost:5173,https://www.swarajvecha.in,https://your-app.vercel.app
 ```
 
 ---
@@ -596,7 +596,7 @@ No `LICENSE` file is currently present in this repository, even though the previ
 
 **Swaraj Vecha** — AI/ML & Full Stack Engineer, B.Tech CSE @ Lovely Professional University
 
-- Portfolio: [swarajvecha.in](https://swarajvecha.in)
+- Portfolio: [swarajvecha.in](https://www.swarajvecha.in)
 - GitHub: [@Swarajbabu](https://github.com/Swarajbabu)
 - LinkedIn: [linkedin.com/in/laxmiswarajbabu](https://www.linkedin.com/in/laxmiswarajbabu)
 - LeetCode: [leetcode.com/u/swarajvecha](https://leetcode.com/u/swarajvecha/)
