@@ -1,18 +1,17 @@
 import { lazy, Suspense, useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { PortfolioProvider } from "@/context/PortfolioContext";
-import Index from "./pages/Index";
+import { Toaster as Sonner } from "@/core/ui/sonner";
+import { Toaster } from "@/core/ui/toaster";
+import { TooltipProvider } from "@/core/ui/tooltip";
+import { PortfolioProvider } from "@/core/context/PortfolioContext";
+import ShowcasePage from "@/showcase/pages/ShowcasePage";
 
-const Admin = lazy(() => import("./pages/Admin"));
+const AdminPage = lazy(() => import("@/admin/pages/AdminPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-import { useContentProtection } from "./hooks/useContentProtection";
-
-import { getApiUrl } from "@/lib/api";
+import { useContentProtection } from "@/showcase/hooks/useContentProtection";
+import { getApiUrl } from "@/core/api/apiClient";
 
 const queryClient = new QueryClient();
 
@@ -48,9 +47,13 @@ const App = () => {
           <BrowserRouter>
             <Suspense fallback={<PageLoader />}>
               <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/admin" element={<Admin />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                {/* 1. Public Portfolio Showcase */}
+                <Route path="/" element={<ShowcasePage />} />
+                
+                {/* 2. Admin Content Management System */}
+                <Route path="/admin" element={<AdminPage />} />
+                
+                {/* 3. Fallback Route */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

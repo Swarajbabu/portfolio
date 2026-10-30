@@ -94,28 +94,26 @@ All real credentials and hardcoded secret fallbacks have been purged from the co
 ## Architecture
 
 ```mermaid
-flowchart LR
+flowchart TD
     User((Visitor))
     Admin((Admin))
 
-    subgraph Vercel["Vercel — Frontend (Static/SPA)"]
-        UI[React 18 + TypeScript SPA]
-    end
-
-    subgraph Render["Render — Backend"]
+    subgraph Render["Render — Full Stack Host & API"]
+        direction TB
+        Static["Compiled React SPA (dist/)"]
         API[Express REST API]
         Cache[(In-Memory RAM Cache\n60s TTL)]
         RL[Per-IP Rate Limiter]
     end
 
-    Atlas[(MongoDB Atlas\nportfolios / contact_messages\nvisitor_logs / admin_settings)]
-    Cloudinary[(Cloudinary\nImages + CV PDF)]
+    Atlas[(MongoDB Atlas Database\nportfolios / contact_messages\nvisitor_logs / admin_settings)]
+    Cloudinary[(Cloudinary\nOptimized Assets + CV PDF)]
     Gmail[Gmail SMTP\nOTP Delivery]
     GeoIP[ip-api.com\nVisitor Geolocation]
 
-    User -->|HTTPS| UI
-    Admin -->|HTTPS + passcode| UI
-    UI -->|fetch /api/*| API
+    User -->|HTTPS| Static
+    Admin -->|HTTPS + passcode| Static
+    Static -->|fetch /api/*| API
     API --> Cache
     API --> RL
     API -->|Mongoose| Atlas
@@ -124,7 +122,7 @@ flowchart LR
     API -->|Geolocation lookup| GeoIP
 ```
 
-The frontend and backend are deployed as **two independent services**: a static Vite build on Vercel and a standalone Express process on Render, connected via `VITE_API_URL`. The frontend never talks to MongoDB or Cloudinary directly — all data access is mediated by the Express API, and the admin passcode is checked server-side on every mutating request (`requireAdmin` middleware), not just on the client.
+The application is deployed full-stack on **Render**, serving the optimized React 18 production build alongside the standalone Express API. All data access is mediated by the Express API, and the admin passcode is checked server-side on every mutating request (`requireAdmin` middleware).
 
 ---
 
@@ -139,37 +137,43 @@ portfolio/
 ├── server/
 │   ├── server.js                  # Express API: portfolio CRUD, auth, uploads, contact, analytics
 │   ├── security.js                # Bcrypt hashing, NoSQL sanitization, XSS stripping, CORS origins
-│   ├── upload_all_to_cloudinary.js
-│   └── package.json               # Standalone server dependency manifest (used by Render)
+│   └── package.json               # Server dependency manifest
 ├── src/
-│   ├── components/
-│   │   ├── sections/              # Hero, About, Skills, Projects, Education, Certs, Contact, Footer
-│   │   ├── layout/                # Navbar, NavLink
-│   │   ├── common/                # RevealOnScroll, FlipCard, ScrollToTop, ProgressBar, LoadingScreen
-│   │   ├── admin/                 # AdminPasskeyModal, AdminTabsNav, AdminHeader, tabs/
-│   │   ├── ui/                    # shadcn/ui + Radix-based primitives (button, dialog, table, etc.)
-│   │   ├── index.ts               # Barrel export for all components
-│   │   └── README.md              # Component architecture and extension recipes
-│   ├── pages/
-│   │   ├── Index.tsx              # Public portfolio page (composes all sections)
-│   │   ├── Admin.tsx              # Admin dashboard: auth, content editor, analytics
-│   │   └── NotFound.tsx
-│   ├── context/
-│   │   └── PortfolioContext.tsx   # Fetches/syncs portfolio data with API + localStorage fallback
-│   ├── data/
-│   │   └── portfolio.ts           # Default/fallback portfolio dataset & PortfolioData type
-│   ├── hooks/
-│   │   ├── useContentProtection.ts # Disables right-click / DevTools shortcuts
-│   │   ├── useScrollReveal.ts, use-mobile.tsx, use-toast.ts
-│   │   └── usePortfolioScroll.ts  # Smooth scrolling & active section tracking
-│   ├── lib/
-│   │   ├── api.ts                 # Resolves API base URL (Vite proxy vs. VITE_API_URL)
-│   │   └── utils.ts
+│   ├── showcase/                  # 🌟 PART 1: PUBLIC PORTFOLIO SHOWCASE
+│   │   ├── pages/
+│   │   │   └── ShowcasePage.tsx   # Master showcase landing page
+│   │   ├── components/
+│   │   │   ├── sections/          # 8 Neo-Brutalist sections (Hero, About, Skills, Projects, etc.)
+│   │   │   ├── layout/            # Navbar, Reading progress bar, Scroll-to-top
+│   │   │   └── common/            # FlipCard, RevealOnScroll, PortfolioLoadingScreen
+│   │   ├── hooks/                 # Showcase interactive hooks (useScrollReveal, useContentProtection)
+│   │   └── README.md              # Dedicated Showcase architectural guide
+│   ├── admin/                     # 🛡️ PART 2: ADMIN CMS & VISITOR ANALYTICS
+│   │   ├── pages/
+│   │   │   └── AdminPage.tsx      # Master Admin CMS container
+│   │   ├── components/
+│   │   │   ├── auth/              # AdminAuthLock (brute-force gate), AdminPasskeyModal (OTP reset)
+│   │   │   ├── layout/            # AdminHeader, AdminTabsNav
+│   │   │   └── tabs/              # 8 Modular editors (Personal, Projects, Analytics, etc.)
+│   │   ├── services/
+│   │   │   └── adminApi.ts        # Encapsulated Admin API service
+│   │   ├── types/
+│   │   │   └── admin.types.ts     # Admin state, visitor logs, and tab types
+│   │   └── README.md              # Dedicated Admin CMS architectural guide
+│   ├── core/                      # 🌐 SHARED CORE FOUNDATION
+│   │   ├── context/
+│   │   │   └── PortfolioContext.tsx # Pure database-driven React context (zero local mocks)
+│   │   ├── types/
+│   │   │   └── portfolio.ts       # Strict TypeScript schema for MongoDB document
+│   │   ├── api/
+│   │   │   └── apiClient.ts       # Centralized API client
+│   │   ├── ui/                    # Reusable Neo-Brutalist design primitives (Radix UI)
+│   │   └── utils/                 # cn() class merger & formatting helpers
+│   ├── components/ui/             # Primitive UI design system (button, dialog, input, etc.)
 │   ├── test/                      # Vitest unit, component, and security tests
-│   └── App.tsx                    # Routes, providers, visitor-tracking on mount
-├── public/                        # Static assets (robots.txt, OG image, placeholder)
-├── vercel.json                    # Frontend deployment config (SPA rewrites, cache headers)
-├── render.yaml                    # Backend deployment config (Render web service)
+│   └── App.tsx                    # Master Router (/ -> ShowcasePage, /admin -> AdminPage)
+├── public/                        # Static assets (robots.txt, SVG favicon, OG social card)
+├── render.yaml                    # Full-stack Render deployment configuration
 ├── .env.example                   # Environment variable template (placeholders only)
 └── package.json
 ```

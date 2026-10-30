@@ -901,6 +901,31 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// ============================================================
+// SEO: SITEMAP & ROBOTS.TXT FOR GOOGLE SEARCH CONSOLE
+// ============================================================
+app.get("/sitemap.xml", (req, res) => {
+  const sitemapDist = path.join(__dirname, "../dist/sitemap.xml");
+  const sitemapPublic = path.join(__dirname, "../public/sitemap.xml");
+  const target = fs.existsSync(sitemapDist) ? sitemapDist : sitemapPublic;
+  if (fs.existsSync(target)) {
+    res.header("Content-Type", "application/xml; charset=utf-8");
+    return res.sendFile(target);
+  }
+  res.status(404).send("Sitemap not found");
+});
+
+app.get("/robots.txt", (req, res) => {
+  const robotsDist = path.join(__dirname, "../dist/robots.txt");
+  const robotsPublic = path.join(__dirname, "../public/robots.txt");
+  const target = fs.existsSync(robotsDist) ? robotsDist : robotsPublic;
+  if (fs.existsSync(target)) {
+    res.header("Content-Type", "text/plain; charset=utf-8");
+    return res.sendFile(target);
+  }
+  res.status(404).send("Robots not found");
+});
+
 // Serve static React build files if dist/ exists; otherwise provide clean API root
 const clientBuildPath = path.join(__dirname, "../dist");
 if (fs.existsSync(path.join(clientBuildPath, "index.html"))) {

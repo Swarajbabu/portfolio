@@ -1,28 +1,14 @@
 /**
  * ==============================================================================
- * MASTER BARREL EXPORT: Components
+ * CENTRAL COMPONENT BARREL EXPORT
  * ==============================================================================
  * Purpose:
- *   Centralized exports for all sections, layout, common, admin, and UI components.
- *
- * Usage:
- *   import { HeroSection, Navbar, RevealOnScroll } from "@/components";
- *   // Or granularly:
- *   import { HeroSection } from "@/components/sections";
- *   import { Navbar } from "@/components/layout";
- *   import { RevealOnScroll } from "@/components/common";
- *   import { AdminHeader, PersonalTab } from "@/components/admin";
+ *   Re-exports components from the dedicated architectural modules:
+ *   - `@/showcase/components` (Public showcase sections & layout)
+ *   - `@/admin/components` (Admin CMS auth, layout, and tabs)
+ *   - `@/components/ui` (Design system primitives)
  * ==============================================================================
  */
 
-// 1. Portfolio Sections
-export * from "./sections";
-
-// 2. Layout & Navigation
-export * from "./layout";
-
-// 3. Common Animation & UI Utilities
-export * from "./common";
-
-// 4. Admin CMS & Analytics Components
-export * from "./admin";
+export * from "@/showcase/components";
+export * from "@/admin/components";
