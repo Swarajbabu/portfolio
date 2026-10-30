@@ -1,17 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- Primary Canonical Domain -->
-  <url>
-    <loc>https://swarajvecha.in/</loc>
-    <lastmod>2026-10-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <!-- WWW Variant -->
-  <url>
-    <loc>https://www.swarajvecha.in/</loc>
-    <lastmod>2026-10-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
+    <url>
+        <loc>https://www.swarajvecha.in/</loc>
+    </url>
 </urlset>

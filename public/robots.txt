@@ -1,7 +1,7 @@
 User-agent: *
 Allow: /
+Allow: /api/portfolio
 Disallow: /admin
 Disallow: /api/
 
 Sitemap: https://www.swarajvecha.in/sitemap.xml
-Sitemap: https://swarajvecha.in/sitemap.xml
