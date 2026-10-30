@@ -32,3 +32,4 @@ describe("Image Optimizer Utility", () => {
     expect(twice).toBe(once);
   });
 });
+
