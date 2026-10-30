@@ -133,7 +133,7 @@ export const CertificationsSection = () => {
                 </button>
                 <span className="font-black text-sm uppercase tracking-widest px-2 min-w-[90px] text-center">
                   Page {currentPage + 1} of {totalPages}
-                </h2>
+                </span>
                 <button
                   onClick={handleNext}
                   aria-label="Next page"
@@ -176,7 +176,7 @@ export const CertificationsSection = () => {
                           </div>
                           <span className="bg-black text-white px-2 py-0.5 font-mono font-black text-xs border border-black shadow-[1px_1px_0px_0px_#000]">
                             {certNum}
-                          </h2>
+                          </span>
                         </div>
                       </div>
                       <div className="p-6 flex-1 flex flex-col bg-card">
@@ -213,10 +213,10 @@ export const CertificationsSection = () => {
                       <div className="w-full pb-2 flex items-center justify-between border-b-2 border-black/10">
                         <span className="font-mono font-black text-xs bg-black text-white px-2 py-0.5">
                           {certNum}
-                        </h2>
+                        </span>
                         <span className="text-[11px] font-black uppercase text-black/70">
                           {item.period}
-                        </h2>
+                        </span>
                       </div>
 
                       {/* Certificate Preview Image */}
@@ -254,7 +254,7 @@ export const CertificationsSection = () => {
                         ) : (
                           <span className="text-[10px] font-black uppercase tracking-wider text-black/50">
                             Credential Verified
-                          </h2>
+                          </span>
                         )}
                       </div>
                     </div>
