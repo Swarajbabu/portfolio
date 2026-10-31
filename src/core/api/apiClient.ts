@@ -9,7 +9,7 @@
  * ==============================================================================
  */
 
-const PRODUCTION_API_URL = "https://swaraj-portfolio-backend.onrender.com";
+const PRODUCTION_API_URL = "https://portfolio-backend-tjpt.onrender.com";
 
 export const getApiUrl = (endpoint: string): string => {
   const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
@@ -19,8 +19,18 @@ export const getApiUrl = (endpoint: string): string => {
     return cleanEndpoint;
   }
 
-  // In production, communicate directly with the live Render backend
-  const baseUrl = (import.meta.env.VITE_API_URL || PRODUCTION_API_URL).replace(/\/$/, "");
+  // If a custom API URL is set via environment variable (e.g. Vercel deployment)
+  if (import.meta.env.VITE_API_URL) {
+    return `${import.meta.env.VITE_API_URL.replace(/\/$/, "")}${cleanEndpoint}`;
+  }
+
+  // When frontend & backend run together on Render (same origin), relative URL works automatically
+  if (typeof window !== "undefined" && (window.location.hostname.includes("onrender.com") || window.location.hostname === "localhost")) {
+    return cleanEndpoint;
+  }
+
+  // Fallback to active live Render backend API
+  const baseUrl = PRODUCTION_API_URL.replace(/\/$/, "");
   return `${baseUrl}${cleanEndpoint}`;
 };
 

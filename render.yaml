@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: swaraj-portfolio-backend
+    name: portfolio-backend-tjpt
     runtime: node
     plan: free
     region: oregon

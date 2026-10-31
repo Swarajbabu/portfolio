@@ -236,7 +236,7 @@ No screenshots or demo images are currently committed to the repository (`public
 ## Live Demo
 
 - **Frontend:** [https://www.swarajvecha.in](https://www.swarajvecha.in) (per `index.html` canonical/OG tags; deployed via Vercel per `vercel.json`)
-- **Backend API:** deployed as a Render web service per `render.yaml` (service name `swaraj-portfolio-backend` at `https://swaraj-portfolio-backend.onrender.com`).
+- **Backend API:** deployed as a Render web service per `render.yaml` (service name `portfolio-backend-tjpt` at `https://portfolio-backend-tjpt.onrender.com`).
 
 `TODO: Add the live Render backend URL here if you want it public (or leave it private and keep only the frontend URL).`
 
@@ -479,7 +479,7 @@ No `.github/workflows` directory exists in this repository — automated CI/CD p
 ## Deployment
 
 - **Frontend:** Vercel, configured via `vercel.json` — Vite build, output to `dist/`, SPA rewrite (`/(.*) → /index.html`), 1-year immutable caching on `/assets`.
-- **Backend:** Render, configured via `render.yaml` — Node web service (`swaraj-portfolio-backend`), build command `npm install`, start command `node server/server.js`, health check at `/api/health`. Secrets (`MONGODB_URI`, Cloudinary keys, `ADMIN_PASSCODE`, email credentials) are marked `sync: false`, meaning they must be set manually in the Render dashboard rather than committed.
+- **Backend:** Render, configured via `render.yaml` — Node web service (`portfolio-backend-tjpt`), build command `npm install`, start command `node server/server.js`, health check at `/api/health`. Secrets (`MONGODB_URI`, Cloudinary keys, `ADMIN_PASSCODE`, email credentials) are marked `sync: false`, meaning they must be set manually in the Render dashboard rather than committed.
 - **Database:** MongoDB Atlas (external, not part of this repo's deployment config).
 - **Frontend ↔ backend linkage:** the Vercel deployment must set `VITE_API_URL` to the live Render backend URL at build time.
 
