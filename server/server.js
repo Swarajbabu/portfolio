@@ -899,6 +899,8 @@ app.delete("/api/analytics/visitors", requireAdmin, async (req, res) => {
 
 // Health check endpoint for uptime monitors
 app.get("/api/health", (req, res) => {
+  const ua = req.headers["user-agent"] || "unknown agent";
+  console.log(`🟢 [PING] /api/health checked at ${new Date().toLocaleTimeString()} by ${ua}`);
   res.json({
     status: "online",
     mongoState: mongoose.connection.readyState === 1 ? "connected" : "connecting",
