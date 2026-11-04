@@ -24,8 +24,13 @@ export const getApiUrl = (endpoint: string): string => {
     return `${import.meta.env.VITE_API_URL.replace(/\/$/, "")}${cleanEndpoint}`;
   }
 
-  // When frontend & backend run together on Render (same origin), relative URL works automatically
-  if (typeof window !== "undefined" && (window.location.hostname.includes("onrender.com") || window.location.hostname === "localhost")) {
+  // When frontend & backend run together (same origin on Render, Modelence, or localhost), relative URL works automatically
+  if (
+    typeof window !== "undefined" &&
+    (window.location.hostname.includes("onrender.com") ||
+      window.location.hostname.includes("modelence") ||
+      window.location.hostname === "localhost")
+  ) {
     return cleanEndpoint;
   }
 

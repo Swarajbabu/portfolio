@@ -1,0 +1,61 @@
+{
+  "$schema": "https://cloud.modelence.com/schema/modelence.config.json?version=1",
+  "resources": {
+    "app": {
+      "type": "service",
+      "image": "node-22-slim",
+      "build": {
+        "commands": [
+          "npm install",
+          "npm run build"
+        ]
+      },
+      "start": {
+        "commands": [
+          "node server/server.js"
+        ]
+      },
+      "static": [
+        {
+          "path": "/",
+          "dir": "dist"
+        }
+      ]
+    }
+  },
+  "env": {
+    "NODE_ENV": {
+      "value": "production"
+    },
+    "ADMIN_PASSCODE": {
+      "type": "secret"
+    },
+    "MONGODB_URI": {
+      "type": "secret",
+      "required": false
+    },
+    "CLOUDINARY_CLOUD_NAME": {
+      "type": "secret",
+      "required": false
+    },
+    "CLOUDINARY_API_KEY": {
+      "type": "secret",
+      "required": false
+    },
+    "CLOUDINARY_API_SECRET": {
+      "type": "secret",
+      "required": false
+    },
+    "EMAIL_USER": {
+      "type": "secret",
+      "required": false
+    },
+    "EMAIL_PASS": {
+      "type": "secret",
+      "required": false
+    },
+    "ALLOWED_ORIGINS": {
+      "required": false
+    }
+  }
+}

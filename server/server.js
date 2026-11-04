@@ -125,6 +125,8 @@ app.use(
           "https://us.i.posthog.com",
           "https://formspree.io",
           "https://*.onrender.com",
+          "https://*.modelence.app",
+          "https://*.modelence.cloud",
           "https://*.google-analytics.com",
           "https://*.analytics.google.com",
           "https://*.googletagmanager.com",

@@ -92,5 +92,7 @@ export const isOriginAllowed = (origin, customAllowedOrigins = []) => {
   if (/^https:\/\/([a-zA-Z0-9-]+\.)?swarajvecha\.in$/.test(origin)) return true;
   // Vercel deployment & preview URLs
   if (/^https:\/\/([a-zA-Z0-9-]+\.)?vercel\.app$/.test(origin)) return true;
+  // Modelence deployment URLs
+  if (/^https:\/\/([a-zA-Z0-9-]+\.)?modelence\.(app|cloud|com)$/.test(origin)) return true;
   return false;
 };
