@@ -89,10 +89,12 @@ export const isOriginAllowed = (origin, customAllowedOrigins = []) => {
   // Localhost / 127.0.0.1 with any port
   if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return true;
   // Production portfolio domain
-  if (/^https:\/\/([a-zA-Z0-9-]+\.)?swarajvecha\.in$/.test(origin)) return true;
+  if (/^https:\/\/([a-zA-Z0-9-]+\.)*swarajvecha\.in$/.test(origin)) return true;
   // Vercel deployment & preview URLs
-  if (/^https:\/\/([a-zA-Z0-9-]+\.)?vercel\.app$/.test(origin)) return true;
-  // Modelence deployment URLs
-  if (/^https:\/\/([a-zA-Z0-9-]+\.)?modelence\.(app|cloud|com)$/.test(origin)) return true;
+  if (/^https:\/\/([a-zA-Z0-9-]+\.)*vercel\.app$/.test(origin)) return true;
+  // Modelence deployment & preview URLs (matches *.modelence.app, *.cloud.modelence.app, etc.)
+  if (/^https:\/\/([a-zA-Z0-9-]+\.)*modelence\.(app|cloud|com)$/.test(origin)) return true;
+  // Render deployment URLs
+  if (/^https:\/\/([a-zA-Z0-9-]+\.)*onrender\.com$/.test(origin)) return true;
   return false;
 };

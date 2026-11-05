@@ -116,10 +116,12 @@ describe("Security: CORS Origin Whitelisting", () => {
     expect(isOriginAllowed("http://127.0.0.1:5000")).toBe(true);
   });
 
-  it("allows production domain and Vercel domains", () => {
+  it("allows production domain, Vercel, Modelence, and Render domains", () => {
     expect(isOriginAllowed("https://swarajvecha.in")).toBe(true);
     expect(isOriginAllowed("https://www.swarajvecha.in")).toBe(true);
     expect(isOriginAllowed("https://swaraj-portfolio.vercel.app")).toBe(true);
+    expect(isOriginAllowed("https://swarajvecha-mw2fwjboyrn-prod.cloud.modelence.app")).toBe(true);
+    expect(isOriginAllowed("https://portfolio-backend-tjpt.onrender.com")).toBe(true);
   });
 
   it("allows custom origins passed in whitelist", () => {

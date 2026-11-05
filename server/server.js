@@ -126,6 +126,7 @@ app.use(
           "https://formspree.io",
           "https://*.onrender.com",
           "https://*.modelence.app",
+          "https://*.cloud.modelence.app",
           "https://*.modelence.cloud",
           "https://*.google-analytics.com",
           "https://*.analytics.google.com",

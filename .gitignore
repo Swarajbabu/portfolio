@@ -33,3 +33,4 @@ playwright-report/
 blob-report/
 coverage/
 .nyc_output/
+.modelence/
